@@ -294,7 +294,8 @@ function closeWin(id){const w=$(id);w.classList.remove('open');w.setAttribute('i
 try{tg?.BackButton?.onClick(()=>{if(stack.length)closeWin(stack[stack.length-1])})}catch(e){}
 [['open-date','win-date'],['open-games','win-games'],['open-settings','win-settings'],['open-rps','win-rps'],['open-ttt','win-ttt']].forEach(([b,w])=>$(b).onclick=()=>openWin(w));
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeWin(b.closest('.window').id));
-let NAMES=['Барсик','Мурзик','Пельмень','Котлета','Босс','Пиксель']   // запасной список; полный грузится из names.json;const BIOS=["Люблю спать на клаве.","Скидываю кружки.","Начальник дивана.","Токсичный, но милый."];
+let NAMES=['Барсик','Мурзик','Пельмень','Котлета','Босс','Пиксель'];   // запасной список; полный грузится из gist
+const BIOS=["Люблю спать на клаве.","Скидываю кружки.","Начальник дивана.","Токсичный, но милый."];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const FALL='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 450"><rect width="320" height="450" fill="#fd267a"/><text x="160" y="230" text-anchor="middle" font-size="60">🐾</text></svg>');
 const catUrl=()=>'https://cataas.com/cat?width=640&height=900&t='+Date.now()+Math.floor(Math.random()*1e6);
