@@ -173,11 +173,30 @@ body,.window{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-ar
 .ios-group button,.ios-cancel{display:block;width:100%;height:57px;border:0;border-top:.5px solid rgba(84,84,88,.65);background:transparent;color:#0a84ff;font-family:inherit;font-size:20px;font-weight:400;cursor:pointer}
 .ios-cancel{margin-top:8px;border-top:0;font-weight:600;background:rgba(44,44,46,.94)}
 .ios-group button:active,.ios-cancel:active{background:rgba(255,255,255,.12)}
+.matches{display:inline-flex;align-items:stretch;padding:0;overflow:hidden;color:#fff}
+.matches .mtxt{display:flex;align-items:center;padding:7px 12px 7px 14px}
+.matches .eye{border:0;border-left:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:inherit;padding:0 13px;font-size:17px;line-height:1;cursor:pointer;transition:background .2s,transform .15s var(--spring)}
+.matches .eye:hover{background:rgba(253,38,122,.35)}
+.matches .eye:active{transform:scale(.85)}
+.matches .eye:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+.mg{width:min(420px,92vw);display:flex;flex-direction:column;align-items:center;gap:16px}
+.mg-stage{--w:min(300px,76vw,calc(46vh * 320 / 450));width:var(--w);height:calc(var(--w) * 450 / 320);border-radius:24px;overflow:hidden;background:var(--panel);box-shadow:0 14px 36px rgba(0,0,0,.55);touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.mg-stage img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.mg-stage img.in{animation:mgin .35s var(--spring)}
+@keyframes mgin{from{opacity:0;transform:scale(.94)}}
+.mg-row{display:flex;align-items:center;gap:14px;width:100%}
+.mg-meta{flex:1;text-align:center;min-width:0}
+.mg-meta .oname{font-size:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mg-row button{width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.2);background:var(--panel);color:#fff;font-size:26px;line-height:1;cursor:pointer;transition:transform .15s var(--spring),border-color .2s}
+.mg-row button:hover:not(:disabled){transform:scale(1.1);border-color:var(--pink)}
+.mg-row button:disabled{opacity:.3;cursor:default}
+.mg .go{width:100%}
+.mg-empty{text-align:center;color:#b9aecb;line-height:1.7;margin-top:60px;font-size:15px}
 </style>
 </head>
 <body>
 <div class="wrap">
-<div class="toprow"><div class="logo">🐾 <span>Tindpurr</span></div><div class="matches">Мэтчи: <b id="mcnt">0</b></div></div>
+<div class="toprow"><div class="logo">🐾 <span>Tindpurr</span></div><div class="matches"><span class="mtxt">Мэтчи:&nbsp;<b id="mcnt">0</b></span><button class="eye" id="open-matches" aria-label="Мои мэтчи">👁️</button></div></div>
 <div class="welcome">Добро пожаловать на №1 площадку<br>для знакомств!</div>
 <div class="menu">
 <button class="mbtn" id="open-date">ЗНАКОМСТВА<span class="ico">🐈‍⬛</span></button>
@@ -199,6 +218,12 @@ body,.window{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-ar
 <div class="opponent" id="ttt-opp"><img id="ttt-cat-img" alt=""><div><div class="oname" id="ttt-cat-name">Поиск кота…</div><div class="osub" id="ttt-status">Ты — ❌, кот — ⭕</div></div><button class="go small" id="ttt-new">🎲 другой кот</button></div>
 <div id="ttt-area"><div class="ttt" id="ttt"></div><div style="margin-top:12px"><button class="go small" id="ttt-reset">Заново</button></div></div>
 </div></div></div>
+<div class="window" id="win-matches" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>МОИ МЭТЧИ</h3></div><div class="wbody">
+<div class="mg" id="mg-view"><div class="mg-stage" id="mg-stage"><img id="mg-img" alt="Кот из мэтча" draggable="false"></div>
+<div class="mg-row"><button id="mg-prev" aria-label="Предыдущий">‹</button><div class="mg-meta"><div class="oname" id="mg-name"></div><div class="osub" id="mg-sub"></div></div><button id="mg-next" aria-label="Следующий">›</button></div>
+<button class="go" id="mg-copy">🔗 Скопировать URL</button></div>
+<div class="mg-empty" id="mg-empty" hidden>😿<br>Пока нет мэтчей.<br>Свайпайте вправо в «Знакомствах»!</div>
+</div></div>
 <div class="window" id="win-settings" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>НАСТРОЙКИ</h3></div><div class="wbody"><div class="ava-wrap"><img class="avatar" id="ava" alt="Аватар"><button class="go small" id="ava-edit">✏️ Изменить</button><input type="file" id="ava-file" accept="image/*" hidden></div><div class="field"><label>Имя кота</label><input id="p-name" maxlength="20"></div><div class="field"><label>Возраст</label><input id="p-age" type="number" min="1" max="25"></div><div class="field"><label>О себе</label><textarea id="p-bio" maxlength="120" rows="3"></textarea></div><div class="field"><label>Вид сообщений и ошибок</label><div class="seg" role="group"><button id="ui-ours" class="on" aria-pressed="true">Наш UI</button><button id="ui-sys" aria-pressed="false">Системные сообщения</button></div><button class="go small" id="ui-test" style="margin-top:10px;background:#2d2438">Показать пример</button></div>
 <div style="display:flex;gap:8px;margin-top:12px"><button class="go" id="save-p">Сохранить</button></div></div></div>
 <div class="dlg-back" id="dlg" inert role="alertdialog" aria-modal="true"><div class="dlg"><div class="big" id="dlg-emoji"></div><h5 id="dlg-title"></h5><p id="dlg-text"></p><div id="dlg-btns"></div></div></div>
@@ -269,7 +294,7 @@ function closeWin(id){const w=$(id);w.classList.remove('open');w.setAttribute('i
 try{tg?.BackButton?.onClick(()=>{if(stack.length)closeWin(stack[stack.length-1])})}catch(e){}
 [['open-date','win-date'],['open-games','win-games'],['open-settings','win-settings'],['open-rps','win-rps'],['open-ttt','win-ttt']].forEach(([b,w])=>$(b).onclick=()=>openWin(w));
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeWin(b.closest('.window').id));
-const NAMES=["Барсик","Мурзик","Пельмень","Котлета","Босс","Пиксель","Рыжик","Черныш","Сэр Мяу"];const BIOS=["Люблю спать на клаве.","Скидываю кружки.","Начальник дивана.","Токсичный, но милый."];
+let NAMES=['Барсик','Мурзик','Пельмень','Котлета','Босс','Пиксель']   // запасной список; полный грузится из names.json;const BIOS=["Люблю спать на клаве.","Скидываю кружки.","Начальник дивана.","Токсичный, но милый."];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const FALL='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 450"><rect width="320" height="450" fill="#fd267a"/><text x="160" y="230" text-anchor="middle" font-size="60">🐾</text></svg>');
 const catUrl=()=>'https://cataas.com/cat?width=640&height=900&t='+Date.now()+Math.floor(Math.random()*1e6);
@@ -287,8 +312,55 @@ async function loadStableCat(){
  }catch(e){}}
  return{url:FALL,id:''};
 }
+// имена котов: загрузка из gist по https; кэш в localStorage; если ничего нет — UI-ошибка с выбором
+const NAMES_URL='https://gist.githubusercontent.com/nekit111kul-dev/1dec4d9465657c3282573df47060ab79/raw/names.json';   // raw-ссылка БЕЗ хэша ревизии — всегда отдаёт свежую версию
+async function fetchNames(){
+ for(let k=0;k<2;k++){   // две попытки, чтобы не пугать случайным сбоем
+  try{
+   const r=await withTimeout(fetch(NAMES_URL,{cache:'no-cache'}),4000);
+   if(!r.ok)throw new Error('HTTP '+r.status);
+   const j=await withTimeout(r.json(),4000);
+   const a=[...new Set((Array.isArray(j)?j:j.names||[]).filter(x=>typeof x==='string').map(x=>x.trim()).filter(x=>x&&x.length<=20))];
+   if(a.length>=20)return a;
+  }catch(e){console.warn('names: попытка',k+1,'не удалась:',e.message)}
+  await sleep(800);
+ }
+ return null;
+}
+async function initNames(){
+ let cached=null;
+ try{const c=JSON.parse(localStorage.getItem('tp_names')||'null');if(Array.isArray(c)&&c.length>=20)cached=c}catch(e){}
+ if(cached)NAMES=cached;
+ const fresh=await fetchNames();
+ if(fresh){NAMES=fresh;try{localStorage.setItem('tp_names',JSON.stringify(fresh))}catch(e){}return}
+ if(cached)return;   // сети нет, но есть сохранённый список — играем с ним без лишних окон
+ const r=await showMsg({emoji:'🙀',title:'Список имён не загружен',text:'Хотите продолжить играть?',
+  buttons:[{id:'retry',text:'Повторить'},{id:'go',text:'Продолжить играть',primary:true,cancel:true}]});   // Esc / «Назад» = продолжить
+ if(r==='retry')initNames();
+}
+initNames();
 // счётчик, звук «мяу» (Web Audio, один общий контекст), конфетти
-let matches=0;store.get('tp_matches').then(v=>{matches=+v||0;$('mcnt').textContent=matches});
+// кот для карточки: JSON даёт постоянный id (нужен для галереи и ссылки), картинка — /cat/<id> нужного размера
+async function loadCardCat(){
+ try{
+  const r=await withTimeout(fetch('https://cataas.com/cat?json=true&t='+Date.now()),4000);
+  const j=await withTimeout(r.json(),4000);const id=j.id||j._id;
+  if(id){const u='https://cataas.com/cat/'+id+'?width=640&height=900';await preload(u);return{url:u,id}}
+ }catch(e){}
+ return{url:await loadCat(),id:''};   // запасной путь: случайный кот без id
+}
+// мэтчи: список хранится в localStorage (имя, картинка, ссылка, дата)
+let matchList=[];
+try{const l=JSON.parse(localStorage.getItem('tp_matchlist')||'[]');if(Array.isArray(l))matchList=l.filter(m=>m&&typeof m.name==='string'&&typeof m.img==='string')}catch(e){}
+$('mcnt').textContent=matchList.length;
+function saveMatch(c){
+ const id=c.dataset.id||'',img=c.querySelector('img').src;
+ if(id&&matchList.some(m=>m.id===id))return;   // этот кот уже в мэтчах
+ matchList.unshift({id,name:c.dataset.name,img,url:id?'https://cataas.com/cat/'+id:img,t:Date.now()});
+ matchList=matchList.slice(0,200);
+ try{localStorage.setItem('tp_matchlist',JSON.stringify(matchList))}catch(e){}
+ $('mcnt').textContent=matchList.length;
+}
 let actx=null;
 function meow(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();
  const t=actx.currentTime,o=actx.createOscillator(),f=actx.createBiquadFilter(),g=actx.createGain();
@@ -305,28 +377,29 @@ function burst(el,list,n=14){const r=el.getBoundingClientRect(),cx=r.left+r.widt
 function play(el,cls){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),950)}
 // колода
 const deck=$('deck'),queue=[];let pending=0,busy=false;
-function build(u){const n=pick(NAMES);const c=document.createElement('div');c.className='card enter';c.dataset.name=n;if(u===FALL)c.dataset.ph=1;c.innerHTML='<img draggable="false"><div class="badge like">LIKE</div><div class="badge nope">NOPE</div><div class="info"><h2>'+n+'</h2><p>'+pick(BIOS)+'</p><span class="dist">📍 '+(1+Math.floor(Math.random()*10))+' км от вас</span></div>';const im=c.querySelector('img');im.onerror=async()=>{if(im.dataset.r)return;im.dataset.r=1;im.src=await loadCat()};im.src=u;drag(c);return c}
+function build(cat){const u=cat.url;const n=pick(NAMES);const c=document.createElement('div');c.className='card enter';c.dataset.name=n;c.dataset.id=cat.id||'';if(u===FALL)c.dataset.ph=1;c.innerHTML='<img draggable="false"><div class="badge like">LIKE</div><div class="badge nope">NOPE</div><div class="info"><h2>'+n+'</h2><p>'+pick(BIOS)+'</p><span class="dist">📍 '+(1+Math.floor(Math.random()*10))+' км от вас</span></div>';const im=c.querySelector('img');im.onerror=async()=>{if(im.dataset.r)return;im.dataset.r=1;im.src=await loadCat()};im.src=u;drag(c);return c}
 const FAIL_LIMIT=3;   // сколько картинок подряд должно не загрузиться, чтобы показать окно
 let catFails=0,netShown=false;
 function noteCat(ok){
  if(ok){catFails=0;return}
  if(++catFails>=FAIL_LIMIT&&!netShown&&stack.includes('win-date')){netShown=true;hap();netDownDialog()}
 }
-function fill(){while(queue.length+pending<5){pending++;loadCat().then(u=>{noteCat(u!==FALL);const k=build(u);deck.appendChild(k);queue.push(k);layout()}).finally(()=>pending--)}}
+function fill(){while(queue.length+pending<5){pending++;loadCardCat().then(cat=>{noteCat(cat.url!==FALL);const k=build(cat);deck.appendChild(k);queue.push(k);layout()}).finally(()=>pending--)}}
 function layout(){$('deck-loader').hidden=queue.length>0;queue.forEach((c,i)=>{if(c.classList.contains('dragging'))return;c.style.zIndex=10-i;c.style.transform='translateY('+(i*14)+'px) scale('+(1-i*.05)+')';c.style.opacity=i<3?1:0})}
 function drag(card){let sx=0,sy=0,dx=0,dy=0,on=false;const L=card.querySelector('.like'),N=card.querySelector('.nope');card.addEventListener('pointerdown',e=>{if(busy||card!==queue[0])return;on=true;sx=e.clientX;sy=e.clientY;dx=0;dy=0;card.classList.add('dragging');try{card.setPointerCapture(e.pointerId)}catch(_){}});card.addEventListener('pointermove',e=>{if(!on)return;dx=e.clientX-sx;dy=e.clientY-sy;card.style.transform='translate('+dx+'px,'+dy+'px) rotate('+(dx*.07)+'deg)';L.style.opacity=dx>0?Math.min(dx/90,1):0;N.style.opacity=dx<0?Math.min(-dx/90,1):0});const end=()=>{if(!on)return;on=false;card.classList.remove('dragging');Math.abs(dx)>100?fly(dx>0?1:-1):layout()};card.addEventListener('pointerup',end);card.addEventListener('pointercancel',end)}
-function fly(d){if(busy||!queue.length)return;busy=true;hap();const c=queue.shift();c.classList.remove('enter');c.classList.add('flying');const dy=(Math.random()*120-60);c.style.transform='translate('+(d*innerWidth)+'px,'+dy+'px) rotate('+(d*25)+'deg)';c.style.opacity=0;layout();fill();setTimeout(()=>{c.remove();busy=false;if(d>0&&Math.random()<.22){if(!$('win-date').classList.contains('open'))return;matches++;store.set('tp_matches',matches);$('mcnt').textContent=matches;$('mimg').src=c.querySelector('img').src;$('mtext').textContent=(pn.value.trim()||'Ты')+' + '+c.dataset.name+' = мэтч!';$('modal').classList.add('show');meow();confetti();hap('ok')}},450)}
+function fly(d){if(busy||!queue.length)return;busy=true;hap();const c=queue.shift();c.classList.remove('enter');c.classList.add('flying');const dy=(Math.random()*120-60);c.style.transform='translate('+(d*innerWidth)+'px,'+dy+'px) rotate('+(d*25)+'deg)';c.style.opacity=0;layout();fill();setTimeout(()=>{c.remove();busy=false;if(d>0&&Math.random()<.22){if(!$('win-date').classList.contains('open'))return;saveMatch(c);$('mimg').src=c.querySelector('img').src;$('mtext').textContent=(pn.value.trim()||'Ты')+' + '+c.dataset.name+' = мэтч!';$('modal').classList.add('show');meow();confetti();hap('ok')}},450)}
 $('btn-like').onclick=()=>fly(1);$('btn-nope').onclick=()=>fly(-1);$('mclose').onclick=()=>$('modal').classList.remove('show');
 document.addEventListener('keydown',e=>{
  if($('modal').classList.contains('show')){if(e.key==='Escape'||e.key==='Enter')$('modal').classList.remove('show');return}
  if(e.key==='Escape'&&stack.length){closeWin(stack[stack.length-1]);return}
+ if(stack[stack.length-1]==='win-matches'){if(e.key==='ArrowLeft')galleryGo(-1);if(e.key==='ArrowRight')galleryGo(1);return}
  if(stack[stack.length-1]!=='win-date')return;
  if(e.key==='ArrowRight')fly(1);if(e.key==='ArrowLeft')fly(-1)});
 // окно «сервис не отвечает»
 function retryCats(){
  catFails=0;netShown=false;
  queue.forEach(c=>{if(!c.dataset.ph)return;const im=c.querySelector('img');
-  loadCat().then(u=>{noteCat(u!==FALL);if(u!==FALL){im.src=u;delete c.dataset.ph}})});   // заглушки заменяются на настоящих котов
+  loadCardCat().then(t=>{noteCat(t.url!==FALL);if(t.url!==FALL){im.src=t.url;c.dataset.id=t.id;delete c.dataset.ph}})});   // заглушки заменяются на настоящих котов
  if(!queue.length)fill();
 }
 async function netDownDialog(){
@@ -334,6 +407,38 @@ async function netDownDialog(){
   buttons:[{id:'retry',text:'Повторить',primary:true},{id:'ok',text:'Играть дальше',cancel:true}]});
  if(r==='retry')retryCats();
 }
+// ---------- галерея мэтчей ----------
+let gi=0;
+function renderGallery(){
+ const n=matchList.length;
+ $('mg-empty').hidden=n>0;$('mg-view').hidden=n===0;
+ if(!n)return;
+ gi=Math.min(Math.max(gi,0),n-1);
+ const m=matchList[gi],im=$('mg-img');
+ im.classList.remove('in');im.src=m.img;void im.offsetWidth;im.classList.add('in');
+ $('mg-name').textContent=m.name;
+ $('mg-sub').textContent=(gi+1)+' из '+n+' · '+new Date(m.t).toLocaleDateString('ru-RU');
+ $('mg-prev').disabled=gi===0;$('mg-next').disabled=gi===n-1;
+ [gi-1,gi+1].forEach(i=>{if(matchList[i])new Image().src=matchList[i].img});   // подгружаем соседей
+}
+function galleryGo(d){const k=gi+d;if(k<0||k>=matchList.length)return;gi=k;hap();renderGallery()}
+async function copyText(t){
+ try{await navigator.clipboard.writeText(t);return true}
+ catch(e){try{const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();const ok=document.execCommand('copy');a.remove();return ok}catch(_){return false}}
+}
+$('open-matches').onclick=()=>{gi=0;renderGallery();openWin('win-matches')};
+$('mg-prev').onclick=()=>galleryGo(-1);
+$('mg-next').onclick=()=>galleryGo(1);
+$('mg-copy').onclick=async()=>{
+ const m=matchList[gi];if(!m)return;
+ const ok=await copyText(m.url),b=$('mg-copy');
+ if(ok){hap('ok');b.textContent='✅ Скопировано';setTimeout(()=>b.textContent='🔗 Скопировать URL',1600)}
+ else toast('Не удалось скопировать. Ссылка: '+m.url);
+};
+(()=>{const st=$('mg-stage');let x0=null;   // свайп влево/вправо листает фото
+ st.addEventListener('pointerdown',e=>{x0=e.clientX;try{st.setPointerCapture(e.pointerId)}catch(_){}});
+ st.addEventListener('pointerup',e=>{if(x0===null)return;const dx=e.clientX-x0;x0=null;if(Math.abs(dx)>50)galleryGo(dx<0?1:-1)});
+ st.addEventListener('pointercancel',()=>{x0=null})})();
 // ---------- игры: поиск соперника ----------
 const searchTok={rps:0,ttt:0};
 function setSearching(g,on){$(g+'-opp').classList.toggle('searching',on);$(g+'-area').classList.toggle('locked',on)}
