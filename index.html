@@ -5,602 +5,470 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tindpurr 🐾</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap');
-
-:root {
-  --pink: #fd267a;
-  --orange: #ff6036;
-  --green: #2fe5a0;
-  --red: #ff4b5c;
-  --bg: #14101a;
-  --panel: #221b2c;
-  --text: #fff;
-  --muted: #b9aecb;
-  --spring: cubic-bezier(.34, 1.56, .64, 1);
-  --smooth: cubic-bezier(.22, .9, .3, 1);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; }
-body {
-  background: radial-gradient(ellipse at 50% -10%, #3a1f4d 0%, var(--bg) 60%);
-  color: var(--text);
-  font-family: 'Montserrat', system-ui, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden;
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* ---------- Шапка ---------- */
-header {
-  width: min(420px, 92vw);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 0 10px;
-}
-.logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 26px; letter-spacing: -.5px; }
-.logo .paw { font-size: 26px; filter: drop-shadow(0 0 8px rgba(253, 38, 122, .6)); }
-.logo span:last-child {
-  background: linear-gradient(90deg, var(--pink), var(--orange));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.counter {
-  background: var(--panel);
-  border: 1px solid rgba(255, 255, 255, .08);
-  border-radius: 999px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-}
-.counter b { color: var(--text); display: inline-block; min-width: 1ch; margin-left: 2px; }
-.counter b.bump { animation: bump .45s var(--spring); }
-@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.7); color: var(--pink); } 100% { transform: scale(1); } }
-
-/* ---------- Стопка карточек ---------- */
-main { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; min-height: 0; }
-.deck {
-  /* ширина ограничена и по высоте экрана, поэтому пропорция 320:450 не «едет» */
-  --w: min(320px, 82vw, calc(58vh * 320 / 450));
-  --w: min(320px, 82vw, calc(58dvh * 320 / 450));
-  position: relative; width: var(--w); height: calc(var(--w) * 450 / 320);
-}
-.card {
-  position: absolute; inset: 0;
-  border-radius: 24px;
-  background: var(--panel);
-  overflow: hidden;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, .55);
-  cursor: grab;
-  touch-action: none;
-  user-select: none; -webkit-user-select: none;
-  transform-origin: 50% 100%;
-  transition: transform .55s var(--spring), opacity .35s ease, filter .35s ease;
-  will-change: transform;
-}
-.card.dragging { transition: none; cursor: grabbing; }
-.card.flying { transition: transform .55s var(--smooth), opacity .5s ease; pointer-events: none; }
-.card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; background: #2d2438; }
-.card.enter { opacity: 0; transform: translateY(40px) scale(.8); }
-.tap-hint {
-  position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 3;
-  font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; white-space: nowrap;
-  background: rgba(10, 6, 16, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  pointer-events: none; transition: opacity .25s;
-}
-.card.joking .tap-hint, .card.joking .info { opacity: 0; transition: opacity .2s; }
-.joke-panel {
-  position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 4; padding: 18px;
-  border-radius: 18px; background: rgba(20, 12, 28, .78); border: 1px solid rgba(255, 255, 255, .12);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); pointer-events: none;
-  opacity: 0; transform: translateY(24px) scale(.96);
-  transition: opacity .3s ease, transform .45s var(--spring);
-}
-.joke-panel.show { opacity: 1; transform: none; }
-.joke-panel .q { font-size: 15px; line-height: 1.45; font-weight: 600; }
-.joke-panel .a {
-  margin-top: 12px; font-size: 15px; line-height: 1.45; font-weight: 700; color: var(--orange);
-  opacity: 0; transform: translateY(8px); transition: opacity .35s ease, transform .45s var(--spring);
-}
-.joke-panel.revealed .a { opacity: 1; transform: none; }
-.card::after { /* затемнение под текстом */
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(to top, rgba(10, 6, 16, .92) 0%, rgba(10, 6, 16, .35) 32%, transparent 55%);
-}
-.info { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px; z-index: 2; pointer-events: none; }
-.info h2 { font-size: 26px; font-weight: 800; line-height: 1.1; }
-.info h2 small { font-weight: 400; font-size: 20px; margin-left: 6px; opacity: .9; }
-.info p { margin-top: 6px; color: #e5dcf2; font-size: 14px; line-height: 1.4; }
-.dist { display: inline-block; margin-top: 10px; font-size: 12px; color: var(--muted); background: rgba(255, 255, 255, .1); padding: 4px 10px; border-radius: 999px; }
-
-.badge {
-  position: absolute; top: 28px; z-index: 3;
-  padding: 6px 16px; border: 4px solid; border-radius: 10px;
-  font-size: 30px; font-weight: 800; letter-spacing: 1px;
-  opacity: 0; pointer-events: none;
-}
-.badge.like { left: 22px; color: var(--green); border-color: var(--green); transform: rotate(-14deg); }
-.badge.nope { right: 22px; color: var(--red); border-color: var(--red); transform: rotate(14deg); }
-
-/* ---------- Кнопки ---------- */
-.controls { display: flex; gap: 28px; }
-.btn {
-  width: 68px; height: 68px; border-radius: 50%;
-  border: 2px solid currentColor;
-  background: var(--panel);
-  display: grid; place-items: center;
-  cursor: pointer;
-  transition: transform .18s var(--spring), box-shadow .25s ease, background .25s ease;
-}
-.btn svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
-.btn.like svg { fill: currentColor; stroke: none; }
-.btn.nope { color: var(--red); }
-.btn.like { color: var(--green); }
-.btn:hover { transform: scale(1.12); }
-.btn.nope:hover { box-shadow: 0 0 0 6px rgba(255, 75, 92, .14), 0 0 28px rgba(255, 75, 92, .65); background: rgba(255, 75, 92, .1); }
-.btn.like:hover { box-shadow: 0 0 0 6px rgba(47, 229, 160, .14), 0 0 28px rgba(47, 229, 160, .65); background: rgba(47, 229, 160, .1); }
-.btn:active { transform: scale(.84); transition-duration: .08s; }
-.btn:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
-.hint { font-size: 12px; color: var(--muted); opacity: .8; }
-
-/* ---------- Модалка мэтча ---------- */
-.match-modal {
-  position: fixed; inset: 0; z-index: 100;
-  background: radial-gradient(circle at 50% 40%, rgba(253, 38, 122, .35), rgba(10, 6, 16, .96) 70%);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 20px; text-align: center;
-  opacity: 0; pointer-events: none; transition: opacity .35s ease;
-  overflow: hidden;
-}
-.match-modal.show { opacity: 1; pointer-events: all; }
-.match-modal h1 {
-  font-size: clamp(36px, 11vw, 56px); font-weight: 800; margin-bottom: 22px;
-  background: linear-gradient(90deg, var(--pink), var(--orange));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 0 18px rgba(253, 38, 122, .55));
-  transform: scale(.3) rotate(-12deg); opacity: 0;
-}
-.match-modal.show h1 { animation: pop .7s .1s var(--spring) forwards; }
-.match-modal img {
-  width: 220px; height: 220px; border-radius: 50%; object-fit: cover;
-  border: 5px solid var(--pink);
-  box-shadow: 0 0 0 10px rgba(253, 38, 122, .18), 0 0 50px rgba(253, 38, 122, .6);
-  margin-bottom: 22px; transform: scale(.3); opacity: 0;
-}
-.match-modal.show img { animation: pop .7s .25s var(--spring) forwards; }
-.match-modal p { font-size: 17px; color: #eadff7; max-width: 340px; line-height: 1.45; margin-bottom: 28px; position: relative; }
-.match-modal .go {
-  position: relative; border: 0; cursor: pointer; color: #fff; font: 700 16px 'Montserrat', sans-serif;
-  padding: 15px 40px; border-radius: 999px;
-  background: linear-gradient(90deg, var(--pink), var(--orange));
-  box-shadow: 0 8px 26px rgba(253, 38, 122, .5);
-  transition: transform .18s var(--spring), box-shadow .25s;
-}
-.match-modal .go:hover { transform: scale(1.06); box-shadow: 0 10px 34px rgba(253, 38, 122, .8); }
-.match-modal .go:active { transform: scale(.92); }
-.match-joke {
-  position: relative; max-width: 340px; margin: -12px 0 26px; padding: 14px 18px; border-radius: 18px;
-  background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14);
-  font-size: 14px; line-height: 1.45;
-}
-.match-joke:empty { display: none; }
-@keyframes pop { to { transform: scale(1) rotate(-4deg); opacity: 1; } }
-.match-modal img { --r: 0deg; }
-
-/* конфетти */
-.confetti { position: absolute; top: -20px; border-radius: 2px; opacity: 0; pointer-events: none; }
-.match-modal.show .confetti { animation: fall linear infinite; }
-@keyframes fall {
-  0%   { transform: translate3d(0, -5vh, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate3d(var(--dx), 110vh, 0) rotate(var(--rot)); opacity: .9; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .card, .btn, .badge, .match-modal * { transition-duration: .01s !important; animation-duration: .01s !important; }
-  .confetti { display: none; }
-}
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Oswald:wght@500;600&display=swap');
+@font-face{font-family:'Dark Deco';src:url('dark-deco.ttf') format('truetype');font-display:swap}
+:root{--pink:#fd267a;--orange:#ff6036;--green:#2fe5a0;--red:#ff4b5c;--bg:#14101a;--panel:#221b2c;--card1:#3d2358;--card2:#2a1a40;--spring:cubic-bezier(.34,1.56,.64,1);--deco:'Dark Deco','Oswald',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:radial-gradient(ellipse at 50% -10%,#2e1840 0%,#14101a 60%);color:#fff;font-family:'Montserrat',system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;overflow:hidden}
+.wrap{width:min(420px,92vw);flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;padding-bottom:8px}
+.logo{padding:16px 4px 6px;font-family:var(--deco);font-size:32px;letter-spacing:2px}
+.logo span{background:linear-gradient(90deg,var(--pink),var(--orange));-webkit-background-clip:text;background-clip:text;color:transparent}
+.toprow{display:flex;align-items:center;justify-content:space-between}
+.matches{font:700 13px Montserrat,sans-serif;background:rgba(255,255,255,.08);padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.1)}
+.welcome{text-align:center;font-family:var(--deco);font-size:24px;line-height:1.3;letter-spacing:2px;margin:14px 0 20px;color:#f2ecff;text-transform:uppercase}
+.menu{display:flex;flex-direction:column;gap:18px}
+.mbtn{position:relative;border:0;cursor:pointer;text-align:left;color:#fff;font-family:var(--deco);font-size:38px;letter-spacing:2px;padding:22px 22px 58px;border-radius:24px;background:linear-gradient(180deg,var(--card1),var(--card2));box-shadow:0 10px 30px rgba(0,0,0,.4);overflow:hidden;transition:transform .15s var(--spring),box-shadow .2s}
+.mbtn:hover{box-shadow:0 0 0 2px rgba(253,38,122,.5),0 10px 30px rgba(0,0,0,.4)}
+.mbtn:active{transform:scale(.97)}
+.mbtn .ico{position:absolute;right:18px;bottom:8px;font-size:56px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.5))}
+.footer{margin-top:auto;text-align:center;padding:18px 0 14px;font-size:12px;opacity:.7}
+.footer small{display:block;font-size:9px;opacity:.5;margin-top:4px}
+.window{position:fixed;inset:0;z-index:80;background:#14101a;display:flex;flex-direction:column;align-items:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s,visibility .25s;overflow:hidden}
+.window.open{opacity:1;visibility:visible;pointer-events:all}
+.whead{width:min(420px,92vw);display:flex;align-items:center;gap:10px;padding:14px 0}
+.whead button{border:0;background:rgba(255,255,255,.1);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px}
+.whead h3{font-family:var(--deco);font-size:22px;letter-spacing:2px}
+.wbody{width:min(420px,92vw);flex:1;overflow:auto;padding-bottom:24px;display:flex;flex-direction:column;align-items:center}
+.deck{--w:min(310px,82vw,52vh);--w:min(310px,82vw,52dvh);position:relative;width:var(--w);height:calc(var(--w) * 450 / 320);margin-top:6px}
+.card{position:absolute;inset:0;border-radius:24px;background:var(--panel);overflow:hidden;touch-action:none;user-select:none;transition:transform .55s var(--spring),opacity .35s}
+.card.enter{animation:enter .45s var(--spring)}
+@keyframes enter{from{transform:translateY(30px) scale(.92);opacity:0}}
+.card.dragging{transition:none}.card.flying{transition:transform .5s ease,opacity .5s;pointer-events:none}
+.card img{width:100%;height:100%;object-fit:cover;display:block;background:#2d2438;pointer-events:none}
+.card::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(10,6,16,.92),transparent 50%)}
+.info{position:absolute;left:0;right:0;bottom:0;padding:18px;z-index:2}
+.info h2{font-family:var(--deco);font-size:26px;letter-spacing:1px;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.info p{font-size:13px;color:#d8cfe8;margin-top:4px}
+.info .dist{display:inline-block;margin-top:8px;font-size:11px;background:rgba(255,255,255,.15);padding:4px 10px;border-radius:999px}
+.badge{position:absolute;top:24px;z-index:3;padding:5px 14px;border:4px solid;border-radius:10px;font-size:26px;font-weight:800;opacity:0}
+.badge.like{left:18px;color:var(--green);border-color:var(--green);transform:rotate(-14deg)}
+.badge.nope{right:18px;color:var(--red);border-color:var(--red);transform:rotate(14deg)}
+.controls{display:flex;gap:22px;margin-top:16px}
+.btn{width:62px;height:62px;border-radius:50%;border:2px solid currentColor;background:var(--panel);display:grid;place-items:center;cursor:pointer;transition:transform .12s,box-shadow .2s}
+.btn:active{transform:scale(.9)}
+.btn.nope:hover{box-shadow:0 0 18px rgba(255,75,92,.6)}.btn.like:hover{box-shadow:0 0 18px rgba(47,229,160,.6)}
+.btn svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round}
+.btn.like svg{fill:currentColor;stroke:none}
+.btn.nope{color:var(--red)}.btn.like{color:var(--green)}
+.go{border:0;cursor:pointer;color:#fff;font:700 15px Montserrat,sans-serif;padding:12px 26px;border-radius:999px;background:linear-gradient(90deg,var(--pink),var(--orange));transition:transform .12s}
+.go:active{transform:scale(.95)}
+.gbox{width:100%;background:var(--panel);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:16px;margin-top:12px;text-align:center}
+.gbox h4{font-family:var(--deco);font-size:22px;letter-spacing:1.5px;margin-bottom:8px}
+.opponent{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0}
+.opponent img{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--pink);background:#2d2438}
+.rps-row{display:flex;gap:10px;justify-content:center;margin-top:10px}
+.rps-row button{font-size:30px;width:64px;height:64px;border-radius:16px;border:1px solid rgba(255,255,255,.15);background:#100b16;cursor:pointer}
+.rps-row button:active{transform:scale(.9)}
+#rps-res{margin-top:10px;min-height:44px;font-size:14px}
+.ttt{display:grid;grid-template-columns:repeat(3,84px);gap:8px;justify-content:center;margin-top:10px}
+.ttt button{width:84px;height:84px;font-size:34px;border-radius:14px;border:1px solid rgba(255,255,255,.15);background:#100b16;color:#fff;cursor:pointer}
+.avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--pink);background:#2d2438}
+.field{width:100%;margin-top:10px}.field label{font-size:12px;color:#b9aecb}
+.field input,.field textarea{width:100%;margin-top:5px;background:#100b16;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:12px;padding:11px 13px;font:600 14px Montserrat,sans-serif;outline:none}
+.match{position:fixed;inset:0;z-index:90;background:rgba(10,6,16,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;visibility:hidden;pointer-events:none;transition:.3s}
+.match.show{opacity:1;visibility:visible;pointer-events:all}
+.match h1{font-family:var(--deco);font-size:46px;letter-spacing:2px;background:linear-gradient(90deg,var(--pink),var(--orange));-webkit-background-clip:text;background-clip:text;color:transparent}
+.match img{width:170px;height:170px;border-radius:50%;object-fit:cover;border:4px solid var(--pink);margin:14px 0}
+.confetti{position:fixed;top:-20px;font-size:20px;z-index:99;animation:fall linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+[hidden]{display:none!important}
+body,.window{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.gmenu{width:100%;display:flex;flex-direction:column;gap:18px;margin-top:6px}
+.gmenu .mbtn{font-size:30px;padding:20px 100px 52px 20px}
+.small{padding:8px 14px!important;font-size:12px!important}
+.oname{font-weight:800}.osub{font-size:12px;color:#b9aecb}
+.opponent{text-align:left}
+.opponent.searching img{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35;transform:scale(.9)}}
+.dots i{font-style:normal;animation:blink 1.2s infinite both}
+.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.15}40%{opacity:1}}
+.locked{opacity:.4;pointer-events:none;filter:grayscale(.4);transition:opacity .25s}
+.ttt button:disabled{opacity:1;cursor:default}
+.shake{display:inline-block;animation:shake .3s infinite}
+@keyframes shake{25%{transform:rotate(-15deg)}75%{transform:rotate(15deg)}}
+.deck-loader{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-weight:600;color:#b9aecb;border-radius:24px;border:2px dashed rgba(255,255,255,.15);line-height:1.8}
+.deck-loader b{display:block;font-size:44px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+.spark{position:fixed;z-index:99;font-size:22px;pointer-events:none;transform:translate(-50%,-50%);animation:spark .85s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes spark{to{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy) + 50px)) rotate(240deg) scale(.4);opacity:0}}
+.gbox.win{animation:glowWin .9s ease}
+@keyframes glowWin{30%{box-shadow:0 0 0 3px var(--green),0 0 40px rgba(47,229,160,.55)}}
+.gbox.lose{animation:glowLose .6s ease}
+@keyframes glowLose{20%,60%{transform:translateX(-7px);box-shadow:0 0 0 3px var(--red),0 0 30px rgba(255,75,92,.5)}40%,80%{transform:translateX(7px)}}
+.gbox.draw{animation:wob .5s ease}
+@keyframes wob{50%{transform:scale(.97)}}
+.opponent img.cheer{animation:cheer .7s var(--spring)}
+@keyframes cheer{40%{transform:scale(1.35) rotate(-10deg)}70%{transform:scale(1.15) rotate(8deg)}}
+.opponent img.sad{animation:sad .9s ease}
+@keyframes sad{30%,70%{transform:translateY(6px) scale(.88);filter:grayscale(1)}}
+.bump{display:inline-block;animation:bump .45s var(--spring)}
+@keyframes bump{40%{transform:scale(1.8);color:var(--pink)}}
+.vs{display:flex;align-items:center;justify-content:center;gap:16px;font-size:56px;min-height:76px}
+.vs span{display:inline-block}
+.vs .x{font-size:16px;font-weight:800;color:#b9aecb}
+.vs .h{animation:clash .5s ease-in-out infinite}
+@keyframes clash{50%{transform:translateY(-16px) rotate(var(--r))}}
+.vs .me{animation:inL .5s var(--spring) both}.vs .cat{animation:inR .5s var(--spring) both}
+@keyframes inL{from{transform:translateX(-70px) scale(.3);opacity:0}}
+@keyframes inR{from{transform:translateX(70px) scale(.3);opacity:0}}
+.rtxt{font-weight:800;font-size:16px;margin-top:6px}
+.rtxt.win{color:var(--green)}.rtxt.lose{color:var(--red)}
+.rps-row button{transition:transform .15s var(--spring),border-color .2s,box-shadow .2s}
+.rps-row button:hover{transform:translateY(-4px) scale(1.08);border-color:var(--pink);box-shadow:0 0 18px rgba(253,38,122,.45)}
+.ttt button:not(:disabled):hover{background:#1c1328;border-color:var(--pink)}
+.ttt button.pop{animation:popm .35s var(--spring)}
+@keyframes popm{from{transform:scale(.2) rotate(-40deg);opacity:0}}
+.ttt button.wl{animation:wl .55s ease-in-out infinite alternate}
+.ttt button.wl.win{background:rgba(47,229,160,.25);border-color:var(--green)}
+.ttt button.wl.lose{background:rgba(255,75,92,.25);border-color:var(--red)}
+@keyframes wl{to{transform:scale(1.1)}}
+.ava-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+.avatar{width:110px;height:110px;cursor:pointer;transition:transform .2s var(--spring)}
+.avatar:hover{transform:scale(1.05)}
+.sheet-back{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+.sheet-back.open{opacity:1;visibility:visible}
+.sheet{position:absolute;left:50%;bottom:0;width:min(460px,100%);transform:translate(-50%,100%);transition:transform .38s cubic-bezier(.2,.9,.3,1);touch-action:none;
+ background:var(--panel);border-radius:26px 26px 0 0;padding:10px 16px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px rgba(0,0,0,.5)}
+.sheet-back.open .sheet{transform:translate(-50%,0)}
+.grab{width:42px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);margin:0 auto 10px}
+.sheet h5{font-family:var(--deco);font-size:20px;letter-spacing:1.5px;text-align:center;margin-bottom:6px}
+.sopt{display:flex;align-items:center;gap:14px;width:100%;border:0;background:#100b16;color:#fff;font:600 16px Montserrat,sans-serif;padding:16px;border-radius:16px;margin-top:10px;cursor:pointer;text-align:left;transition:transform .12s,background .2s}
+.sopt span{font-size:24px;width:30px;text-align:center}
+.sopt:hover{background:#1c1328}.sopt:active{transform:scale(.97)}
+.sopt.cancel{justify-content:center;background:transparent;border:1px solid rgba(255,255,255,.15);color:#b9aecb}
+.dlg-back{position:fixed;inset:0;z-index:96;background:rgba(0,0,0,.6);display:grid;place-items:center;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+.dlg-back.open{opacity:1;visibility:visible}
+.dlg{width:min(340px,86vw);background:var(--panel);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:26px 22px 20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6);transform:scale(.85);transition:transform .38s var(--spring)}
+.dlg-back.open .dlg{transform:scale(1)}
+.dlg .big{font-size:56px;line-height:1}
+.dlg h5{font-family:var(--deco);font-size:24px;letter-spacing:1.5px;margin:12px 0 8px}
+.dlg p{font-size:14px;color:#b9aecb;line-height:1.5;margin-bottom:18px}
+.dlg .go{width:100%}
+.dlg .sopt{margin-top:10px}
+.seg{display:flex;background:#100b16;border-radius:12px;padding:3px;margin-top:6px}
+.seg button{flex:1;border:0;background:transparent;color:#b9aecb;font:600 13px Montserrat,sans-serif;padding:10px 6px;border-radius:10px;cursor:pointer;transition:background .2s,color .2s}
+.seg button.on{background:linear-gradient(90deg,var(--pink),var(--orange));color:#fff}
+.ios-back{position:fixed;inset:0;z-index:97;background:rgba(0,0,0,.4);display:grid;place-items:center;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;font-family:-apple-system,'SF Pro Text',BlinkMacSystemFont,'Helvetica Neue',system-ui,sans-serif}
+.ios-back.open{opacity:1;visibility:visible}
+.ios-alert{width:270px;border-radius:14px;background:rgba(44,44,46,.94);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);text-align:center;overflow:hidden;transform:scale(1.12);transition:transform .25s cubic-bezier(.2,.9,.3,1)}
+.ios-back.open .ios-alert{transform:scale(1)}
+.ios-body{padding:20px 16px 16px}
+.ios-body b{display:block;font-size:17px;font-weight:600;line-height:22px;color:#fff}
+.ios-body p{font-size:13px;line-height:18px;color:#fff;margin-top:4px}
+.ios-btns{display:flex;border-top:.5px solid rgba(84,84,88,.65)}
+.ios-btns.col{flex-direction:column}
+.ios-btns button{flex:1;height:44px;border:0;background:transparent;color:#0a84ff;font-family:inherit;font-size:17px;font-weight:400;cursor:pointer}
+.ios-btns button.bold{font-weight:600}
+.ios-btns button+button{border-left:.5px solid rgba(84,84,88,.65)}
+.ios-btns.col button+button{border-left:0;border-top:.5px solid rgba(84,84,88,.65)}
+.ios-btns button:active{background:rgba(255,255,255,.12)}
+.ios-sheet-back{position:fixed;inset:0;z-index:97;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;font-family:-apple-system,'SF Pro Text',BlinkMacSystemFont,'Helvetica Neue',system-ui,sans-serif}
+.ios-sheet-back.open{opacity:1;visibility:visible}
+.ios-as{width:min(460px,100%);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));transform:translateY(110%);transition:transform .38s cubic-bezier(.2,.9,.3,1)}
+.ios-sheet-back.open .ios-as{transform:none}
+.ios-group,.ios-cancel{border-radius:14px;background:rgba(44,44,46,.94);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);overflow:hidden}
+.ios-ast{padding:14px 16px;text-align:center;font-size:13px;font-weight:600;color:#8e8e93}
+.ios-group button,.ios-cancel{display:block;width:100%;height:57px;border:0;border-top:.5px solid rgba(84,84,88,.65);background:transparent;color:#0a84ff;font-family:inherit;font-size:20px;font-weight:400;cursor:pointer}
+.ios-cancel{margin-top:8px;border-top:0;font-weight:600;background:rgba(44,44,46,.94)}
+.ios-group button:active,.ios-cancel:active{background:rgba(255,255,255,.12)}
 </style>
 </head>
 <body>
-
-<header>
-  <div class="logo"><span class="paw">🐾</span><span>Tindpurr</span></div>
-  <div class="counter">Мэтчи: <b id="count">0</b></div>
-</header>
-
-<main>
-  <div class="deck" id="deck"></div>
-
-  <div class="controls">
-    <button class="btn nope" id="btn-nope" aria-label="Не нравится">
-      <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
-    </button>
-    <button class="btn like" id="btn-like" aria-label="Нравится">
-      <svg viewBox="0 0 24 24"><path d="M12 21.2l-1.45-1.32C5.4 15.2 2 12.1 2 8.3 2 5.2 4.4 3 7.4 3c1.7 0 3.4.8 4.6 2.1C13.2 3.8 14.9 3 16.6 3 19.6 3 22 5.2 22 8.3c0 3.8-3.4 6.9-8.55 11.58L12 21.2z"/></svg>
-    </button>
-  </div>
-  <div class="hint">Свайпайте, жмите ← → или тапните по карточке за шуткой</div>
-</main>
-
-<div class="match-modal" id="match-modal" role="dialog" aria-modal="true" aria-label="Мэтч">
-  <h1>МЯУ-МЭТЧ!</h1>
-  <img id="match-img" src="" alt="Ваш мэтч">
-  <p id="match-text"></p>
-  <div class="match-joke" id="match-joke"></div>
-  <button class="go" id="match-close">Продолжить</button>
+<div class="wrap">
+<div class="toprow"><div class="logo">🐾 <span>Tindpurr</span></div><div class="matches">Мэтчи: <b id="mcnt">0</b></div></div>
+<div class="welcome">Добро пожаловать на №1 площадку<br>для знакомств!</div>
+<div class="menu">
+<button class="mbtn" id="open-date">ЗНАКОМСТВА<span class="ico">🐈‍⬛</span></button>
+<button class="mbtn" id="open-games">ИГРЫ<span class="ico">🎮</span></button>
+<button class="mbtn" id="open-settings">НАСТРОЙКИ<span class="ico">⚙️</span></button>
 </div>
-
+<div class="footer">@TINDPURR_BOT<br><small>ПОМНИТЕ: ТИНДПУРР - ВСЕГО ЛИШЬ ИГРА, НЕ СТОИТ ЗАВОДИТЬ ОТНОШЕНИЯ С КОТАМИ</small></div>
+</div>
+<div class="window" id="win-date" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>ЗНАКОМСТВА</h3></div><div class="wbody"><div class="deck" id="deck"><div class="deck-loader" id="deck-loader"><div><b>🐾</b>Поиск котиков<span class="dots"><i>.</i><i>.</i><i>.</i></span></div></div></div><div class="controls"><button class="btn nope" id="btn-nope" aria-label="Не нравится"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button><button class="btn like" id="btn-like" aria-label="Нравится"><svg viewBox="0 0 24 24"><path d="M12 21.2l-1.45-1.32C5.4 15.2 2 12.1 2 8.3 2 5.2 4.4 3 7.4 3c1.7 0 3.4.8 4.6 2.1C13.2 3.8 14.9 3 16.6 3 19.6 3 22 5.2 22 8.3c0 3.8-3.4 6.9-8.55 11.58L12 21.2z"/></svg></button></div><div style="font-size:11px;opacity:.5;margin-top:10px">Свайпайте, жмите ← → или кнопки</div></div></div>
+<div class="window" id="win-games" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>ИГРЫ</h3></div><div class="wbody"><div class="gmenu">
+<button class="mbtn" id="open-rps">КАМЕНЬ-НОЖНИЦЫ-БУМАГА<span class="ico">✂️</span></button>
+<button class="mbtn" id="open-ttt">КРЕСТИКИ-НОЛИКИ<span class="ico">❌</span></button>
+</div></div></div>
+<div class="window" id="win-rps" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>КАМЕНЬ-НОЖНИЦЫ-БУМАГА</h3></div><div class="wbody"><div class="gbox">
+<div class="opponent" id="rps-opp"><img id="rps-cat-img" alt=""><div><div class="oname" id="rps-cat-name">Поиск кота…</div><div class="osub">Счёт <span id="rps-score">0:0</span></div></div><button class="go small" id="rps-new">🎲 другой кот</button></div>
+<div id="rps-area"><div class="rps-row"><button data-rps="rock" aria-label="Камень">🪨</button><button data-rps="scissors" aria-label="Ножницы">✂️</button><button data-rps="paper" aria-label="Бумага">📄</button></div><div id="rps-res">Выбери жест 🐾</div></div>
+</div></div></div>
+<div class="window" id="win-ttt" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>КРЕСТИКИ-НОЛИКИ</h3></div><div class="wbody"><div class="gbox">
+<div class="opponent" id="ttt-opp"><img id="ttt-cat-img" alt=""><div><div class="oname" id="ttt-cat-name">Поиск кота…</div><div class="osub" id="ttt-status">Ты — ❌, кот — ⭕</div></div><button class="go small" id="ttt-new">🎲 другой кот</button></div>
+<div id="ttt-area"><div class="ttt" id="ttt"></div><div style="margin-top:12px"><button class="go small" id="ttt-reset">Заново</button></div></div>
+</div></div></div>
+<div class="window" id="win-settings" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>НАСТРОЙКИ</h3></div><div class="wbody"><div class="ava-wrap"><img class="avatar" id="ava" alt="Аватар"><button class="go small" id="ava-edit">✏️ Изменить</button><input type="file" id="ava-file" accept="image/*" hidden></div><div class="field"><label>Имя кота</label><input id="p-name" maxlength="20"></div><div class="field"><label>Возраст</label><input id="p-age" type="number" min="1" max="25"></div><div class="field"><label>О себе</label><textarea id="p-bio" maxlength="120" rows="3"></textarea></div><div class="field"><label>Вид сообщений и ошибок</label><div class="seg" role="group"><button id="ui-ours" class="on" aria-pressed="true">Наш UI</button><button id="ui-sys" aria-pressed="false">Системные сообщения</button></div><button class="go small" id="ui-test" style="margin-top:10px;background:#2d2438">Показать пример</button></div>
+<div style="display:flex;gap:8px;margin-top:12px"><button class="go" id="save-p">Сохранить</button></div></div></div>
+<div class="dlg-back" id="dlg" inert role="alertdialog" aria-modal="true"><div class="dlg"><div class="big" id="dlg-emoji"></div><h5 id="dlg-title"></h5><p id="dlg-text"></p><div id="dlg-btns"></div></div></div>
+<div class="ios-back" id="ios" inert role="alertdialog" aria-modal="true"><div class="ios-alert"><div class="ios-body"><b id="ios-title"></b><p id="ios-text"></p></div><div class="ios-btns" id="ios-btns"></div></div></div>
+<div class="sheet-back" id="sheet" inert role="dialog" aria-modal="true" aria-label="Изменить аватар"><div class="sheet">
+<div class="grab"></div><h5>АВАТАР</h5>
+<button class="sopt" id="opt-tg"><span>✈️</span>Поставить из Telegram</button>
+<button class="sopt" id="opt-cat"><span>🐱</span>Случайный кот</button>
+<button class="sopt" id="opt-photo"><span>🖼️</span>Фото из галереи</button>
+<button class="sopt cancel" id="sheet-cancel">Отмена</button>
+</div></div>
+<div class="ios-sheet-back" id="iossheet" inert role="dialog" aria-modal="true" aria-label="Изменить аватар"><div class="ios-as">
+<div class="ios-group"><div class="ios-ast">Изменить аватар</div>
+<button id="ios-opt-tg">Поставить из Telegram</button>
+<button id="ios-opt-cat">Случайный кот</button>
+<button id="ios-opt-photo">Фото из галереи</button></div>
+<button class="ios-cancel" id="ios-cancel">Отмена</button>
+</div></div>
+<div class="match" id="modal"><h1>МЯУ-МЭТЧ!</h1><img id="mimg"><p id="mtext"></p><button class="go" id="mclose" style="margin-top:12px">Продолжить</button></div>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
-(() => {
-  'use strict';
-
-  const deck = document.getElementById('deck');
-  const modal = document.getElementById('match-modal');
-  const countEl = document.getElementById('count');
-
-  const VISIBLE = 3;              // сколько карточек видно в стопке
-  const STACK_SIZE = 5;           // сколько всего держим наготове (остальные уже предзагружены)
-  const MATCH_CHANCE = 0.22;      // шанс «мяу-мэтча» после лайка
-  const JOKE_LANG = 'en';         // JokeAPI: en, de, cs, es, fr, pt (русского нет)
-  const SWIPE_DISTANCE = 110;     // порог свайпа в px
-  const SWIPE_VELOCITY = 0.55;    // порог скорости (px/ms)
-  const IMG_TIMEOUT = 7000;
-  const JOKE_TIMEOUT = 4000;
-
-  const NAMES = ["Барсик", "Мурзик", "Шершень", "Пельмень", "Котлета", "Босс", "Сэр Мяу", "Пиксель", "Черныш", "Рыжик"];
-  const BIOS = [
-    "Люблю скидывать кружки в 4 утра.",
-    "Ищу того, кто будет чесать пузо.",
-    "Начальник дивана.",
-    "Профессиональный лежебока.",
-    "Токсичный, но милый.",
-    "Мой любимый фильм — «Кошки против собак».",
-    "Ищу спонсора на корм премиум-класса.",
-    "Могу часами смотреть в стену."
-  ];
-  const MATCH_TEXTS = [
-    "Вы оба любите спать по 18 часов в сутки.",
-    "Идеальная пара для поедания корма в 3 часа ночи.",
-    "У вас 100% совпадение по шкале пушистости.",
-    "Он тоже ненавидит пылесос. Судьба!",
-    "Свадьба будет в ближайшем приюте."
-  ];
-
-  // Русские шутки: запасной вариант, когда JokeAPI недоступен или не знает язык
-  const LOCAL_JOKES = [
-    { type: 'twopart', setup: 'Почему коты не играют в покер?', delivery: 'Хвост выдаёт блеф.' },
-    { type: 'twopart', setup: 'Что кот сказал, скинув кружку со стола?', delivery: '«Гравитация работает. Проверено».' },
-    { type: 'twopart', setup: 'Что общего у кота и дедлайна?', delivery: 'Оба появляются внезапно и сбивают всё со стола.' },
-    { type: 'twopart', setup: 'Как называется кот-программист?', delivery: 'Кот-Dev. Постоянно роняет продакшен.' },
-    { type: 'single', joke: 'Я не толстый. Я просто пушистый в области живота.' },
-    { type: 'single', joke: 'Кот не ленивый. Он экономит силы для охоты на вашу ногу в 3 часа ночи.' }
-  ];
-
-  // Локальная заглушка (SVG в data-URI) — последний рубеж, если не грузится вообще ничего
-  const LOCAL_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 450">' +
-    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fd267a"/><stop offset="1" stop-color="#ff6036"/></linearGradient></defs>' +
-    '<rect width="320" height="450" fill="url(#g)"/>' +
-    '<path d="M80 190l-10-85 55 40q35-12 70 0l55-40-10 85q20 30 5 70-25 45-90 45t-90-45q-15-40 5-70z" fill="#2a1a33"/>' +
-    '<circle cx="125" cy="215" r="12" fill="#fff"/><circle cx="195" cy="215" r="12" fill="#fff"/>' +
-    '<path d="M150 245h20l-10 12z" fill="#fd267a"/>' +
-    '<text x="160" y="370" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#fff">Кот сегодня офлайн</text></svg>'
-  );
-
-  const queue = [];     // карточки в порядке стопки: [0] — верхняя
-  let pending = 0;      // сколько карточек ещё грузится
-  let busy = false;     // идёт анимация вылета
-  let modalOpen = false;
-  let matches = 0;
-
-  /* ---------- Загрузка котиков: картинка напрямую, без промежуточного JSON ---------- */
-  function catImageUrl() {
-    // уникальный параметр, чтобы браузер не отдавал одну и ту же кошку из кэша
-    return 'https://cataas.com/cat?width=640&height=900&t=' + Date.now() + Math.floor(Math.random() * 1e6);
+(()=>{const tg=window.Telegram?.WebApp;
+try{if(tg){tg.ready();tg.expand();tg.setHeaderColor?.('#14101a');tg.setBackgroundColor?.('#14101a');tg.disableVerticalSwipes?.()}}catch(e){}
+const $=id=>document.getElementById(id);
+const hap=t=>{try{const h=tg&&tg.HapticFeedback;if(!h)return;t==='ok'?h.notificationOccurred('success'):h.impactOccurred('light')}catch(e){}};
+// ---------- сообщения: «наш UI» или «системные» ----------
+// системные = настоящий попап Telegram (на iOS это родное окно iOS); вне Telegram — точная копия iOS-алерта
+let uiMode='ours';
+const closers={};
+function showMsg(o){
+ return new Promise(res=>{
+  const cancelId=(o.buttons.find(b=>b.cancel)||o.buttons[o.buttons.length-1]).id;
+  const system=uiMode==='system';
+  if(system&&tg&&tg.showPopup&&tg.isVersionAtLeast&&tg.isVersionAtLeast('6.2')){
+   try{tg.showPopup({title:(o.title||'').slice(0,64),message:o.text.slice(0,256),buttons:o.buttons.slice(0,3).map(b=>({id:b.id,type:'default',text:b.text.slice(0,64)}))},id=>res(id||cancelId));return}catch(e){}
   }
-
-  // Предзагрузка через new Image(): карточка создаётся, только когда картинка уже в кэше
-  function preloadImage(url, timeoutMs) {
-    return new Promise((resolve, reject) => {
-      const probe = new Image();
-      const timer = setTimeout(() => { probe.onload = probe.onerror = null; reject(new Error('Timeout')); }, timeoutMs);
-      probe.onload = () => { clearTimeout(timer); resolve(url); };
-      probe.onerror = () => { clearTimeout(timer); reject(new Error('Load error')); };
-      probe.src = url;
-    });
+  const elId=system?'ios':'dlg';
+  if(closers[elId])closers[elId]();                 // закрываем предыдущее сообщение, если оно ещё висит
+  const done=id=>{delete closers[elId];closeWin(elId);res(id)};
+  const box=$(system?'ios-btns':'dlg-btns');box.innerHTML='';
+  if(system){
+   $('ios-title').textContent=o.title||'';$('ios-text').textContent=o.text;box.classList.toggle('col',o.buttons.length>2);
+   o.buttons.forEach(b=>{const x=document.createElement('button');x.textContent=b.text;if(b.primary)x.className='bold';x.onclick=()=>done(b.id);box.appendChild(x)});
+  }else{
+   $('dlg-emoji').textContent=o.emoji||'🐾';$('dlg-title').textContent=(o.title||'').toUpperCase();$('dlg-text').textContent=o.text;
+   o.buttons.forEach(b=>{const x=document.createElement('button');x.textContent=b.text;x.className=b.primary?'go':'sopt cancel';x.onclick=()=>done(b.id);box.appendChild(x)});
   }
-
-  async function loadCatImage() {
-    for (const url of [catImageUrl(), 'https://http.cat/404', LOCAL_FALLBACK]) {
-      try { return await preloadImage(url, IMG_TIMEOUT); }
-      catch (err) { console.warn('Картинка не загрузилась, пробуем запасную:', err.message); }
-    }
-    return LOCAL_FALLBACK;
-  }
-
-  /* ---------- Шутки: v2.jokeapi.dev ---------- */
-  // AbortSignal не используем (в песочницах ломает fetch), таймаут — через Promise.race
-  function withTimeout(promise, ms) {
-    let timer;
-    const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Timeout')), ms); });
-    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
-  }
-
-  async function fetchJoke() {
-    try {
-      const res = await withTimeout(fetch('https://v2.jokeapi.dev/joke/Any?safe-mode&lang=' + JOKE_LANG), JOKE_TIMEOUT);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await withTimeout(res.json(), JOKE_TIMEOUT);
-      if (data.error) throw new Error(data.message || 'API error');
-      return data.type === 'twopart'
-        ? { type: 'twopart', setup: data.setup, delivery: data.delivery }
-        : { type: 'single', joke: data.joke };
-    } catch (err) {
-      console.warn('JokeAPI недоступен, берём локальную шутку:', err.message);
-      return null;
-    }
-  }
-
-  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-
-  function buildCard(imgUrl) {
-    const name = pick(NAMES);
-    const age = 1 + Math.floor(Math.random() * 12);
-    const card = document.createElement('div');
-    card.className = 'card enter';
-    card.dataset.name = name;
-    card.innerHTML =
-      '<img alt="" draggable="false">' +
-      '<div class="badge like">LIKE</div>' +
-      '<div class="badge nope">NOPE</div>' +
-      '<div class="tap-hint">💬 Нажми — шутка</div>' +
-      '<div class="joke-panel"><div class="q"></div><div class="a"></div></div>' +
-      '<div class="info"><h2></h2><p></p><span class="dist"></span></div>';
-
-    const img = card.querySelector('img');
-    // цепочка запасных вариантов: исходный URL → http.cat → локальный SVG
-    img.addEventListener('error', () => {
-      if (img.dataset.fb === '2') return;
-      if (img.dataset.fb === '1') { img.dataset.fb = '2'; img.src = LOCAL_FALLBACK; }
-      else { img.dataset.fb = '1'; img.src = 'https://http.cat/404'; }
-    });
-    img.src = imgUrl;
-
-    card.querySelector('h2').innerHTML = name + '<small>' + age + '</small>';
-    card.querySelector('p').textContent = pick(BIOS);
-    card.querySelector('.dist').textContent = '📍 ' + (1 + Math.floor(Math.random() * 15)) + ' км от вас';
-
-    // шутка: сразу локальная, затем подменяется шуткой из API (если успела загрузиться)
-    card.joke = pick(LOCAL_JOKES);
-    fetchJoke().then(j => { if (j) card.joke = j; });
-
-    attachDrag(card);
-    return card;
-  }
-
-  async function fillStack() {
-    while (queue.length + pending < STACK_SIZE) {
-      pending++;
-      loadCatImage().then(url => {
-        const card = buildCard(url);
-        deck.appendChild(card);
-        queue.push(card);
-        void card.offsetWidth;            // фиксируем стартовое состояние .enter
-        card.classList.remove('enter');   // и плавно переходим в раскладку стопки
-        layout();
-      }).finally(() => { pending--; });
-    }
-  }
-
-  /* ---------- Раскладка стопки ---------- */
-  function layout() {
-    queue.forEach((card, i) => {
-      if (card.classList.contains('dragging')) return;
-      card.style.zIndex = String(10 - i);
-      card.style.transform = 'translateY(' + (i * 14) + 'px) scale(' + (1 - i * 0.05) + ')';
-      card.style.opacity = i < VISIBLE ? '1' : '0';
-      card.style.filter = 'brightness(' + (1 - i * 0.18) + ')';
-      if (i === 0) resetBadges(card);
-    });
-  }
-
-  function resetBadges(card) {
-    card.querySelector('.badge.like').style.opacity = 0;
-    card.querySelector('.badge.nope').style.opacity = 0;
-  }
-
-  /* ---------- Свайп (мышь и палец через Pointer Events) ---------- */
-  function attachDrag(card) {
-    const like = card.querySelector('.badge.like');
-    const nope = card.querySelector('.badge.nope');
-    let startX = 0, startY = 0, dx = 0, dy = 0, t0 = 0, active = false;
-
-    card.addEventListener('pointerdown', e => {
-      if (busy || modalOpen || card !== queue[0]) return;
-      active = true;
-      startX = e.clientX; startY = e.clientY; dx = dy = 0; t0 = performance.now();
-      card.classList.add('dragging');
-      card.setPointerCapture(e.pointerId);
-    });
-
-    card.addEventListener('pointermove', e => {
-      if (!active) return;
-      dx = e.clientX - startX;
-      dy = e.clientY - startY;
-      card.style.transform = 'translate(' + dx + 'px,' + (dy * 0.35) + 'px) rotate(' + (dx * 0.07) + 'deg)';
-      const p = Math.min(Math.max((Math.abs(dx) - 30) / 90, 0), 1);
-      like.style.opacity = dx > 0 ? p : 0;
-      nope.style.opacity = dx < 0 ? p : 0;
-    });
-
-    const finish = e => {
-      if (!active) return;
-      active = false;
-      card.classList.remove('dragging');
-      const elapsed = performance.now() - t0;
-      if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && elapsed < 400) {   // короткий тап → шутка
-        layout();
-        nextJokeStep(card);
-        return;
-      }
-      const velocity = Math.abs(dx) / Math.max(elapsed, 1);
-      if (Math.abs(dx) > SWIPE_DISTANCE || (velocity > SWIPE_VELOCITY && Math.abs(dx) > 40)) {
-        flyAway(dx > 0 ? 1 : -1);
-      } else {
-        layout();   // упругий возврат (spring cubic-bezier)
-      }
-    };
-    card.addEventListener('pointerup', finish);
-    card.addEventListener('pointercancel', finish);
-  }
-
-  /* ---------- Шутка: тап → завязка, ещё тап → панчлайн, ещё тап → закрыть ---------- */
-  function nextJokeStep(card) {
-    const panel = card.querySelector('.joke-panel');
-    const step = Number(card.dataset.jstep || 0);
-    if (step === 0) {
-      card.activeJoke = card.joke;   // фиксируем, чтобы завязка и панчлайн были из одной шутки
-      const j = card.activeJoke;
-      panel.querySelector('.q').textContent = j.type === 'twopart' ? j.setup : j.joke;
-      panel.querySelector('.a').textContent = '';
-      panel.classList.remove('revealed');
-      panel.classList.add('show');
-      card.classList.add('joking');
-      card.dataset.jstep = j.type === 'twopart' ? 1 : 2;
-    } else if (step === 1) {
-      panel.querySelector('.a').textContent = card.activeJoke.delivery;
-      panel.classList.add('revealed');
-      card.dataset.jstep = 2;
-    } else {
-      panel.classList.remove('show', 'revealed');
-      card.classList.remove('joking');
-      card.dataset.jstep = 0;
-    }
-  }
-
-  /* ---------- Вылет карточки ---------- */
-  function flyAway(dir) {
-    if (busy || modalOpen || !queue.length) return;
-    busy = true;
-
-    const card = queue.shift();
-    card.classList.add('flying');
-    card.style.zIndex = '50';
-    card.style.transform = 'translate(' + (dir * window.innerWidth * 1.1) + 'px,-60px) rotate(' + (dir * 40) + 'deg)';
-    card.style.opacity = '0';
-    card.querySelector(dir > 0 ? '.badge.like' : '.badge.nope').style.opacity = 1;
-
-    layout();        // остальные карточки сразу подтягиваются вверх
-    fillStack();     // подгружаем новую
-
-    if (dir > 0) {
-      matches++;
-      countEl.textContent = matches;
-      countEl.classList.remove('bump'); void countEl.offsetWidth; countEl.classList.add('bump');
-    }
-
-    const img = card.querySelector('img').src;
-    const name = card.dataset.name;
-    const joke = card.activeJoke || card.joke;
-    setTimeout(() => {
-      card.remove();
-      busy = false;
-      if (dir > 0 && Math.random() < MATCH_CHANCE) showMatch(name, img, joke);
-    }, 480);
-  }
-
-  /* ---------- Кнопки и клавиатура ---------- */
-  document.getElementById('btn-nope').addEventListener('click', () => flyAway(-1));
-  document.getElementById('btn-like').addEventListener('click', () => flyAway(1));
-  document.addEventListener('keydown', e => {
-    if (modalOpen) { if (e.key === 'Escape' || e.key === 'Enter') closeMatch(); return; }
-    if (e.key === 'ArrowLeft') flyAway(-1);
-    if (e.key === 'ArrowRight') flyAway(1);
-    if ((e.key === 'ArrowUp' || e.key === ' ' || e.key.toLowerCase() === 'j') && queue[0] && !busy) {
-      e.preventDefault();
-      nextJokeStep(queue[0]);
-    }
-  });
-
-  /* ---------- Звук «мяу» (Web Audio API, без файлов) ---------- */
-  let audioCtx = null;
-  function meow() {
-    try {
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const t = audioCtx.currentTime;
-
-      const osc = audioCtx.createOscillator();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(420, t);
-      osc.frequency.exponentialRampToValueAtTime(900, t + 0.2);   // «мя-»
-      osc.frequency.exponentialRampToValueAtTime(380, t + 0.75);  // «-ау»
-
-      const formant = audioCtx.createBiquadFilter();              // имитация «рта»
-      formant.type = 'bandpass';
-      formant.Q.value = 3;
-      formant.frequency.setValueAtTime(700, t);
-      formant.frequency.exponentialRampToValueAtTime(1800, t + 0.25);
-      formant.frequency.exponentialRampToValueAtTime(600, t + 0.75);
-
-      const gain = audioCtx.createGain();
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.5, t + 0.08);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
-
-      osc.connect(formant).connect(gain).connect(audioCtx.destination);
-      osc.start(t);
-      osc.stop(t + 0.85);
-    } catch (err) {
-      console.warn('Звук недоступен:', err);
-    }
-  }
-
-  /* ---------- Модалка мэтча + конфетти ---------- */
-  function spawnConfetti() {
-    modal.querySelectorAll('.confetti').forEach(n => n.remove());
-    const colors = ['#fd267a', '#ff6036', '#ffd23f', '#2fe5a0', '#4cc9f0', '#c77dff'];
-    for (let i = 0; i < 60; i++) {
-      const c = document.createElement('i');
-      c.className = 'confetti';
-      const size = 6 + Math.random() * 8;
-      c.style.left = Math.random() * 100 + '%';
-      c.style.width = size + 'px';
-      c.style.height = size * (0.5 + Math.random()) + 'px';
-      c.style.background = pick(colors);
-      c.style.animationDuration = (2.5 + Math.random() * 3) + 's';
-      c.style.animationDelay = (-Math.random() * 5) + 's';
-      c.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px');
-      c.style.setProperty('--rot', (360 + Math.random() * 720) + 'deg');
-      modal.appendChild(c);
-    }
-  }
-
-  function showMatch(name, img, joke) {
-    modalOpen = true;
-    document.getElementById('match-img').src = img;
-    document.getElementById('match-text').textContent = name + ': ' + pick(MATCH_TEXTS);
-    document.getElementById('match-joke').textContent = joke
-      ? '😹 ' + (joke.type === 'twopart' ? joke.setup + ' — ' + joke.delivery : joke.joke)
-      : '';
-    spawnConfetti();
-    modal.classList.remove('show'); void modal.offsetWidth;   // перезапуск анимаций
-    modal.classList.add('show');
-    meow();
-    document.getElementById('match-close').focus();
-  }
-
-  function closeMatch() {
-    modal.classList.remove('show');
-    modalOpen = false;
-  }
-  document.getElementById('match-close').addEventListener('click', closeMatch);
-
-  /* ---------- Старт ---------- */
-  fillStack();
+  closers[elId]=()=>res(cancelId);                  // закрытие по Esc / «Назад» = отмена
+  openWin(elId);
+ });
+}
+const toast=m=>showMsg({emoji:'🐾',title:'Tindpurr',text:m,buttons:[{id:'ok',text:'ОК',primary:true}]});
+// хранилище: CloudStorage Telegram (синхронизация между устройствами) + localStorage как запасной вариант
+const cs=(tg&&tg.isVersionAtLeast&&tg.isVersionAtLeast('6.9'))?tg.CloudStorage:null;
+const store={
+ get(k){const local=()=>{try{return localStorage.getItem(k)}catch(e){return null}};
+  if(!cs)return Promise.resolve(local());
+  return new Promise(res=>{const t=setTimeout(()=>res(local()),1500);cs.getItem(k,(err,v)=>{clearTimeout(t);res(!err&&v?v:local())})})},
+ set(k,v){v=String(v);try{localStorage.setItem(k,v)}catch(e){}if(cs)try{cs.setItem(k,v)}catch(e){}}
+};
+// окна: стек + кнопка «Назад» Telegram
+const stack=[];
+const hooks={'win-date':()=>fill(),'win-rps':()=>findOpponent('rps'),'win-ttt':()=>findOpponent('ttt'),'win-settings':()=>initAva()};
+const done={};
+function syncBack(){try{if(tg&&tg.BackButton)stack.length?tg.BackButton.show():tg.BackButton.hide()}catch(e){}}
+function openWin(id){if(stack.includes(id))return;const w=$(id);w.classList.add('open');w.removeAttribute('inert');stack.push(id);syncBack();if(hooks[id]&&!done[id]){done[id]=true;hooks[id]()}}
+function closeWin(id){const w=$(id);w.classList.remove('open');w.setAttribute('inert','');const i=stack.indexOf(id);if(i>-1)stack.splice(i,1);syncBack();const f=closers[id];if(f){delete closers[id];f()}}
+try{tg?.BackButton?.onClick(()=>{if(stack.length)closeWin(stack[stack.length-1])})}catch(e){}
+[['open-date','win-date'],['open-games','win-games'],['open-settings','win-settings'],['open-rps','win-rps'],['open-ttt','win-ttt']].forEach(([b,w])=>$(b).onclick=()=>openWin(w));
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeWin(b.closest('.window').id));
+const NAMES=["Барсик","Мурзик","Пельмень","Котлета","Босс","Пиксель","Рыжик","Черныш","Сэр Мяу"];const BIOS=["Люблю спать на клаве.","Скидываю кружки.","Начальник дивана.","Токсичный, но милый."];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const FALL='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 450"><rect width="320" height="450" fill="#fd267a"/><text x="160" y="230" text-anchor="middle" font-size="60">🐾</text></svg>');
+const catUrl=()=>'https://cataas.com/cat?width=640&height=900&t='+Date.now()+Math.floor(Math.random()*1e6);
+const preload=u=>new Promise((res,rej)=>{const i=new Image();const t=setTimeout(()=>rej(0),7000);i.onload=()=>{clearTimeout(t);i.naturalWidth<10?rej(0):res(u)};i.onerror=()=>{clearTimeout(t);rej(0)};i.src=u});
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const withTimeout=(p,ms)=>{let t;return Promise.race([p,new Promise((_,j)=>t=setTimeout(()=>j(new Error('timeout')),ms))]).finally(()=>clearTimeout(t))};
+const PAW='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2d2438"/><text x="50" y="66" text-anchor="middle" font-size="48">🐾</text></svg>');
+async function loadCat(){for(let k=0;k<2;k++){try{return await preload(catUrl())}catch(e){}}return FALL}
+// кот с постоянным id (для аватара): JSON-запрос с таймаутом (без AbortSignal), затем /cat/<id>
+async function loadStableCat(){
+ for(let k=0;k<2;k++){try{
+  const r=await withTimeout(fetch('https://cataas.com/cat?json=true&t='+Date.now()),5000);
+  const j=await withTimeout(r.json(),5000);const id=j.id||j._id;
+  if(id){const u='https://cataas.com/cat/'+id;await preload(u);return{url:u,id}}
+ }catch(e){}}
+ return{url:FALL,id:''};
+}
+// счётчик, звук «мяу» (Web Audio, один общий контекст), конфетти
+let matches=0;store.get('tp_matches').then(v=>{matches=+v||0;$('mcnt').textContent=matches});
+let actx=null;
+function meow(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();
+ const t=actx.currentTime,o=actx.createOscillator(),f=actx.createBiquadFilter(),g=actx.createGain();
+ o.type='sawtooth';o.frequency.setValueAtTime(450,t);o.frequency.exponentialRampToValueAtTime(900,t+.2);o.frequency.exponentialRampToValueAtTime(380,t+.7);
+ f.type='bandpass';f.Q.value=3;f.frequency.setValueAtTime(700,t);f.frequency.exponentialRampToValueAtTime(1800,t+.25);f.frequency.exponentialRampToValueAtTime(600,t+.75);
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.5,t+.08);g.gain.exponentialRampToValueAtTime(.0001,t+.8);
+ o.connect(f).connect(g).connect(actx.destination);o.start(t);o.stop(t+.85)}catch(e){}}
+function confetti(){const e=['🐾','💖','✨','🎉'];for(let i=0;i<30;i++){const d=document.createElement('div');d.className='confetti';d.textContent=pick(e);d.style.left=Math.random()*100+'vw';d.style.animationDuration=(1.5+Math.random()*1.5)+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),3000)}}
+// эффекты: взрыв эмодзи из элемента, анимация-реакция, подсветка блока
+function burst(el,list,n=14){const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+ for(let i=0;i<n;i++){const d=document.createElement('div');d.className='spark';d.textContent=pick(list);d.style.left=cx+'px';d.style.top=cy+'px';
+  const a=Math.random()*Math.PI*2,m=60+Math.random()*90;d.style.setProperty('--dx',Math.cos(a)*m+'px');d.style.setProperty('--dy',(Math.sin(a)*m-40)+'px');
+  document.body.appendChild(d);setTimeout(()=>d.remove(),900)}}
+function play(el,cls){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),950)}
+// колода
+const deck=$('deck'),queue=[];let pending=0,busy=false;
+function build(u){const n=pick(NAMES);const c=document.createElement('div');c.className='card enter';c.dataset.name=n;if(u===FALL)c.dataset.ph=1;c.innerHTML='<img draggable="false"><div class="badge like">LIKE</div><div class="badge nope">NOPE</div><div class="info"><h2>'+n+'</h2><p>'+pick(BIOS)+'</p><span class="dist">📍 '+(1+Math.floor(Math.random()*10))+' км от вас</span></div>';const im=c.querySelector('img');im.onerror=async()=>{if(im.dataset.r)return;im.dataset.r=1;im.src=await loadCat()};im.src=u;drag(c);return c}
+const FAIL_LIMIT=3;   // сколько картинок подряд должно не загрузиться, чтобы показать окно
+let catFails=0,netShown=false;
+function noteCat(ok){
+ if(ok){catFails=0;return}
+ if(++catFails>=FAIL_LIMIT&&!netShown&&stack.includes('win-date')){netShown=true;hap();netDownDialog()}
+}
+function fill(){while(queue.length+pending<5){pending++;loadCat().then(u=>{noteCat(u!==FALL);const k=build(u);deck.appendChild(k);queue.push(k);layout()}).finally(()=>pending--)}}
+function layout(){$('deck-loader').hidden=queue.length>0;queue.forEach((c,i)=>{if(c.classList.contains('dragging'))return;c.style.zIndex=10-i;c.style.transform='translateY('+(i*14)+'px) scale('+(1-i*.05)+')';c.style.opacity=i<3?1:0})}
+function drag(card){let sx=0,sy=0,dx=0,dy=0,on=false;const L=card.querySelector('.like'),N=card.querySelector('.nope');card.addEventListener('pointerdown',e=>{if(busy||card!==queue[0])return;on=true;sx=e.clientX;sy=e.clientY;dx=0;dy=0;card.classList.add('dragging');try{card.setPointerCapture(e.pointerId)}catch(_){}});card.addEventListener('pointermove',e=>{if(!on)return;dx=e.clientX-sx;dy=e.clientY-sy;card.style.transform='translate('+dx+'px,'+dy+'px) rotate('+(dx*.07)+'deg)';L.style.opacity=dx>0?Math.min(dx/90,1):0;N.style.opacity=dx<0?Math.min(-dx/90,1):0});const end=()=>{if(!on)return;on=false;card.classList.remove('dragging');Math.abs(dx)>100?fly(dx>0?1:-1):layout()};card.addEventListener('pointerup',end);card.addEventListener('pointercancel',end)}
+function fly(d){if(busy||!queue.length)return;busy=true;hap();const c=queue.shift();c.classList.remove('enter');c.classList.add('flying');const dy=(Math.random()*120-60);c.style.transform='translate('+(d*innerWidth)+'px,'+dy+'px) rotate('+(d*25)+'deg)';c.style.opacity=0;layout();fill();setTimeout(()=>{c.remove();busy=false;if(d>0&&Math.random()<.22){if(!$('win-date').classList.contains('open'))return;matches++;store.set('tp_matches',matches);$('mcnt').textContent=matches;$('mimg').src=c.querySelector('img').src;$('mtext').textContent=(pn.value.trim()||'Ты')+' + '+c.dataset.name+' = мэтч!';$('modal').classList.add('show');meow();confetti();hap('ok')}},450)}
+$('btn-like').onclick=()=>fly(1);$('btn-nope').onclick=()=>fly(-1);$('mclose').onclick=()=>$('modal').classList.remove('show');
+document.addEventListener('keydown',e=>{
+ if($('modal').classList.contains('show')){if(e.key==='Escape'||e.key==='Enter')$('modal').classList.remove('show');return}
+ if(e.key==='Escape'&&stack.length){closeWin(stack[stack.length-1]);return}
+ if(stack[stack.length-1]!=='win-date')return;
+ if(e.key==='ArrowRight')fly(1);if(e.key==='ArrowLeft')fly(-1)});
+// окно «сервис не отвечает»
+function retryCats(){
+ catFails=0;netShown=false;
+ queue.forEach(c=>{if(!c.dataset.ph)return;const im=c.querySelector('img');
+  loadCat().then(u=>{noteCat(u!==FALL);if(u!==FALL){im.src=u;delete c.dataset.ph}})});   // заглушки заменяются на настоящих котов
+ if(!queue.length)fill();
+}
+async function netDownDialog(){
+ const r=await showMsg({emoji:'😿',title:'Сервис не отвечает',text:'Котики не загрузились. Играйте на своё желание.',
+  buttons:[{id:'retry',text:'Повторить',primary:true},{id:'ok',text:'Играть дальше',cancel:true}]});
+ if(r==='retry')retryCats();
+}
+// ---------- игры: поиск соперника ----------
+const searchTok={rps:0,ttt:0};
+function setSearching(g,on){$(g+'-opp').classList.toggle('searching',on);$(g+'-area').classList.toggle('locked',on)}
+async function findOpponent(g){
+ const t=++searchTok[g];
+ setSearching(g,true);
+ $(g+'-cat-img').src=PAW;
+ $(g+'-cat-name').innerHTML='Поиск кота<span class="dots"><i>.</i><i>.</i><i>.</i></span>';
+ if(g==='ttt')$('ttt-status').textContent='Подбираем соперника…';
+ const [url]=await Promise.all([loadCat(),sleep(1200)]);   // минимум 1.2 с, чтобы поиск было видно
+ if(t!==searchTok[g])return;                                // пришёл более новый поиск
+ $(g+'-cat-name').textContent=pick(NAMES);
+ $(g+'-cat-img').src=url;
+ setSearching(g,false);
+ hap();play($(g+'-cat-img'),'cheer');burst($(g+'-cat-img'),['🐾','✨'],8);
+ if(g==='rps'){rpsMe=rpsCat=0;$('rps-score').textContent='0:0';$('rps-res').textContent='Выбери жест 🐾'}else resetTtt();
+}
+$('rps-new').onclick=()=>findOpponent('rps');
+$('ttt-new').onclick=()=>findOpponent('ttt');
+// ---------- камень-ножницы-бумага ----------
+let rpsMe=0,rpsCat=0,rpsBusy=false;
+const EMO={rock:'🪨',scissors:'✂️',paper:'📄'};
+document.querySelectorAll('[data-rps]').forEach(b=>b.onclick=()=>{
+ if(rpsBusy)return;rpsBusy=true;hap();
+ const me=b.dataset.rps,cat=pick(['rock','scissors','paper']),res=$('rps-res');
+ res.innerHTML='<div class="vs"><span class="h" style="--r:14deg">✊</span><span class="x">VS</span><span class="h" style="--r:-14deg">✊</span></div><div class="rtxt">Раз… два… три…</div>';
+ setTimeout(()=>{
+  const beats=(me==='rock'&&cat==='scissors')||(me==='scissors'&&cat==='paper')||(me==='paper'&&cat==='rock');
+  const o=beats?'win':me===cat?'draw':'lose';
+  const name=$('rps-cat-name').textContent;
+  if(o==='win')rpsMe++;else if(o==='lose')rpsCat++;
+  $('rps-score').textContent=rpsMe+':'+rpsCat;play($('rps-score'),'bump');
+  const txt={win:'Ты выиграл! 🐾',draw:'Ничья 😼',lose:name+' выиграл 😹'}[o];
+  res.innerHTML='<div class="vs"><span class="me">'+EMO[me]+'</span><span class="x">VS</span><span class="cat">'+EMO[cat]+'</span></div><div class="rtxt '+o+'">'+txt+'</div>';
+  play($('rps-opp').parentElement,o);
+  const img=$('rps-cat-img');
+  if(o==='win'){meow();hap('ok');confetti();burst(res,['🐾','⭐','💖'],18);play(img,'sad')}
+  else if(o==='lose'){play(img,'cheer');burst(img,['😹','🐟'],8)}
+  else burst(res,['😼','🤝'],6);
+  rpsBusy=false;
+ },900);
+});
+// ---------- крестики-нолики ----------
+const tttEl=$('ttt');let board=[],over=false,thinking=false,gen=0,lastIdx=-1,hl=[],hlKind='';
+const WIN=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const lineOf=b=>WIN.find(([a,c,d])=>b[a]&&b[a]===b[c]&&b[a]===b[d]);
+const winL=b=>!!lineOf(b);
+function resetTtt(){gen++;board=Array(9).fill('');over=false;thinking=false;lastIdx=-1;hl=[];$('ttt-status').textContent='Ты — ❌, кот — ⭕';renderTtt()}
+function renderTtt(){tttEl.innerHTML='';board.forEach((v,i)=>{const b=document.createElement('button');b.textContent=v;b.disabled=!!v;b.setAttribute('aria-label','Клетка '+(i+1));
+ if(i===lastIdx&&v)b.classList.add('pop');if(hl.includes(i))b.classList.add('wl',hlKind);b.onclick=()=>move(i);tttEl.appendChild(b)})}
+function bestMove(b){for(const p of ['⭕','❌']){for(let i=0;i<9;i++){if(!b[i]){b[i]=p;const w=winL(b);b[i]='';if(w)return i}}}if(!b[4])return 4;const cor=[0,2,6,8].filter(i=>!b[i]);if(cor.length)return pick(cor);return pick(b.map((v,i)=>v?null:i).filter(x=>x!==null))}
+function end(text,kind){
+ over=true;$('ttt-status').textContent=text;hl=kind==='draw'?[]:(lineOf(board)||[]);hlKind=kind;renderTtt();
+ play($('ttt-opp').parentElement,kind);const img=$('ttt-cat-img');
+ if(kind==='win'){meow();hap('ok');confetti();burst(tttEl,['🐾','⭐','💖'],18);play(img,'sad')}
+ else if(kind==='lose'){play(img,'cheer');burst(img,['😹','🐟'],8)}
+ else burst(tttEl,['😼','🤝'],6);
+}
+function move(i){
+ if(over||thinking||board[i])return;
+ board[i]='❌';lastIdx=i;hap();
+ if(winL(board))return end('Ты победил! 🐾','win');
+ if(board.every(Boolean))return end('Ничья 😼','draw');
+ thinking=true;const g=gen,name=$('ttt-cat-name').textContent;
+ $('ttt-status').textContent=name+' думает…';renderTtt();
+ setTimeout(()=>{
+  if(g!==gen)return;                       // партию сбросили, пока кот думал
+  const c=bestMove([...board]);board[c]='⭕';lastIdx=c;thinking=false;hap();
+  if(winL(board))return end(name+' победил 😹','lose');
+  if(board.every(Boolean))return end('Ничья 😼','draw');
+  $('ttt-status').textContent='Твой ход ❌';renderTtt();
+ },400+Math.random()*200);
+}
+$('ttt-reset').onclick=resetTtt;resetTtt();
+// ---------- анкета: аватар хранится по id, поэтому не меняется ----------
+const pn=$('p-name'),pa=$('p-age'),pb=$('p-bio'),av=$('ava');
+pn.value='Барсик';pa.value='3';
+Promise.all([store.get('tp_name'),store.get('tp_age'),store.get('tp_bio')]).then(([n,a,b])=>{if(n)pn.value=n;if(a)pa.value=a;if(b)pb.value=b});
+// ---------- аватар: Telegram / случайный кот / фото из галереи (выбор и фото хранятся локально) ----------
+const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
+let avaId='',avaRetried=false;
+async function useCat(){av.src=PAW;ls.set('tp_ava_mode','cat');ls.del('tp_ava_photo');const s=await loadStableCat();av.src=s.url;avaId=s.id;if(avaId)store.set('tp_ava_id',avaId)}
+function useTelegram(silent){
+ const u=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user,url=u&&u.photo_url;
+ if(!url){if(!silent)toast('Telegram не передал фото вашего профиля. Выберите случайного кота или фото из галереи.');return false}
+ av.src=url;ls.set('tp_ava_mode','tg');ls.del('tp_ava_photo');return true;
+}
+// квадратная обрезка по центру + сжатие до 256×256 JPEG, чтобы влезло в localStorage
+function squarePhoto(file,size=256){return new Promise((res,rej)=>{
+ const u=URL.createObjectURL(file),i=new Image();
+ i.onload=()=>{try{const m=Math.min(i.naturalWidth,i.naturalHeight),c=document.createElement('canvas');c.width=c.height=size;
+  c.getContext('2d').drawImage(i,(i.naturalWidth-m)/2,(i.naturalHeight-m)/2,m,m,0,0,size,size);res(c.toDataURL('image/jpeg',.86))}catch(e){rej(e)}finally{URL.revokeObjectURL(u)}};
+ i.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('bad image'))};i.src=u})}
+$('ava-file').onchange=async e=>{
+ const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+ try{const d=await squarePhoto(f);if(!ls.set('tp_ava_photo',d))throw new Error('quota');ls.set('tp_ava_mode','photo');av.src=d;hap('ok')}
+ catch(err){toast('Не удалось загрузить фото. Попробуйте другое.')}
+};
+async function initAva(){
+ const mode=ls.get('tp_ava_mode');
+ if(mode==='photo'){const d=ls.get('tp_ava_photo');if(d){av.src=d;return}}
+ if(mode==='tg'&&useTelegram(true))return;
+ const id=await store.get('tp_ava_id');
+ if(id){avaId=id;av.src='https://cataas.com/cat/'+id}else useCat();
+}
+av.onerror=()=>{if(avaRetried)return;if(av.src.startsWith('https://cataas.com/cat/')||ls.get('tp_ava_mode')==='tg'){avaRetried=true;useCat()}};
+// нижнее окошко
+$('ava-edit').onclick=av.onclick=()=>openWin(uiMode==='system'?'iossheet':'sheet');   // вид окошка зависит от переключателя
+$('sheet').onclick=e=>{if(e.target===$('sheet'))closeWin('sheet')};
+$('sheet-cancel').onclick=()=>closeWin('sheet');
+$('opt-tg').onclick=()=>{if(useTelegram(false)){closeWin('sheet');hap('ok')}};
+$('opt-cat').onclick=()=>{closeWin('sheet');useCat()};
+$('opt-photo').onclick=()=>{closeWin('sheet');$('ava-file').click()};
+// то же окошко в «системном» виде: iOS action sheet
+$('iossheet').onclick=e=>{if(e.target===$('iossheet'))closeWin('iossheet')};
+$('ios-cancel').onclick=()=>closeWin('iossheet');
+$('ios-opt-tg').onclick=()=>{closeWin('iossheet');if(useTelegram(false))hap('ok')};
+$('ios-opt-cat').onclick=()=>{closeWin('iossheet');useCat()};
+$('ios-opt-photo').onclick=()=>{closeWin('iossheet');$('ava-file').click()};
+(()=>{const sh=document.querySelector('.sheet');let y0=null,dy=0;   // свайп вниз закрывает окошко
+ sh.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;y0=e.clientY;dy=0;sh.style.transition='none';try{sh.setPointerCapture(e.pointerId)}catch(_){}});
+ sh.addEventListener('pointermove',e=>{if(y0===null)return;dy=Math.max(0,e.clientY-y0);sh.style.transform='translate(-50%,'+dy+'px)'});
+ const up=()=>{if(y0===null)return;y0=null;sh.style.transition='';sh.style.transform='';if(dy>80)closeWin('sheet')};
+ sh.addEventListener('pointerup',up);sh.addEventListener('pointercancel',up)})();
+function setUi(m,persist){
+ uiMode=m;
+ [['ui-ours','ours'],['ui-sys','system']].forEach(([id,v])=>{$(id).classList.toggle('on',m===v);$(id).setAttribute('aria-pressed',m===v)});
+ if(persist)store.set('tp_ui',m);
+}
+$('ui-ours').onclick=()=>setUi('ours',true);
+$('ui-sys').onclick=()=>setUi('system',true);
+$('ui-test').onclick=()=>showMsg({emoji:'😿',title:'Не удаётся подключиться',text:'Сервис не отвечает. Играйте на своё желание.',
+ buttons:[{id:'retry',text:'Повторить',primary:true},{id:'ok',text:'Отмена',cancel:true}]});
+store.get('tp_ui').then(v=>{if(v==='system')setUi('system',false)});
+$('save-p').onclick=()=>{store.set('tp_name',pn.value.trim());store.set('tp_age',pa.value);store.set('tp_bio',pb.value);hap('ok');toast('Сохранено 🐾')};
 })();
 </script>
 </body>
