@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tindpurr 🐾</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap');
+
+:root {
+  --pink: #fd267a;
+  --orange: #ff6036;
+  --green: #2fe5a0;
+  --red: #ff4b5c;
+  --bg: #14101a;
+  --panel: #221b2c;
+  --text: #fff;
+  --muted: #b9aecb;
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --smooth: cubic-bezier(.22, .9, .3, 1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  background: radial-gradient(ellipse at 50% -10%, #3a1f4d 0%, var(--bg) 60%);
+  color: var(--text);
+  font-family: 'Montserrat', system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ---------- Шапка ---------- */
+header {
+  width: min(420px, 92vw);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0 10px;
+}
+.logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 26px; letter-spacing: -.5px; }
+.logo .paw { font-size: 26px; filter: drop-shadow(0 0 8px rgba(253, 38, 122, .6)); }
+.logo span:last-child {
+  background: linear-gradient(90deg, var(--pink), var(--orange));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.counter {
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.counter b { color: var(--text); display: inline-block; min-width: 1ch; margin-left: 2px; }
+.counter b.bump { animation: bump .45s var(--spring); }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.7); color: var(--pink); } 100% { transform: scale(1); } }
+
+/* ---------- Стопка карточек ---------- */
+main { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; min-height: 0; }
+.deck {
+  /* ширина ограничена и по высоте экрана, поэтому пропорция 320:450 не «едет» */
+  --w: min(320px, 82vw, calc(58vh * 320 / 450));
+  --w: min(320px, 82vw, calc(58dvh * 320 / 450));
+  position: relative; width: var(--w); height: calc(var(--w) * 450 / 320);
+}
+.card {
+  position: absolute; inset: 0;
+  border-radius: 24px;
+  background: var(--panel);
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .55);
+  cursor: grab;
+  touch-action: none;
+  user-select: none; -webkit-user-select: none;
+  transform-origin: 50% 100%;
+  transition: transform .55s var(--spring), opacity .35s ease, filter .35s ease;
+  will-change: transform;
+}
+.card.dragging { transition: none; cursor: grabbing; }
+.card.flying { transition: transform .55s var(--smooth), opacity .5s ease; pointer-events: none; }
+.card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; background: #2d2438; }
+.card.enter { opacity: 0; transform: translateY(40px) scale(.8); }
+.tap-hint {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 3;
+  font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; white-space: nowrap;
+  background: rgba(10, 6, 16, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  pointer-events: none; transition: opacity .25s;
+}
+.card.joking .tap-hint, .card.joking .info { opacity: 0; transition: opacity .2s; }
+.joke-panel {
+  position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 4; padding: 18px;
+  border-radius: 18px; background: rgba(20, 12, 28, .78); border: 1px solid rgba(255, 255, 255, .12);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); pointer-events: none;
+  opacity: 0; transform: translateY(24px) scale(.96);
+  transition: opacity .3s ease, transform .45s var(--spring);
+}
+.joke-panel.show { opacity: 1; transform: none; }
+.joke-panel .q { font-size: 15px; line-height: 1.45; font-weight: 600; }
+.joke-panel .a {
+  margin-top: 12px; font-size: 15px; line-height: 1.45; font-weight: 700; color: var(--orange);
+  opacity: 0; transform: translateY(8px); transition: opacity .35s ease, transform .45s var(--spring);
+}
+.joke-panel.revealed .a { opacity: 1; transform: none; }
+.card::after { /* затемнение под текстом */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top, rgba(10, 6, 16, .92) 0%, rgba(10, 6, 16, .35) 32%, transparent 55%);
+}
+.info { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px; z-index: 2; pointer-events: none; }
+.info h2 { font-size: 26px; font-weight: 800; line-height: 1.1; }
+.info h2 small { font-weight: 400; font-size: 20px; margin-left: 6px; opacity: .9; }
+.info p { margin-top: 6px; color: #e5dcf2; font-size: 14px; line-height: 1.4; }
+.dist { display: inline-block; margin-top: 10px; font-size: 12px; color: var(--muted); background: rgba(255, 255, 255, .1); padding: 4px 10px; border-radius: 999px; }
+
+.badge {
+  position: absolute; top: 28px; z-index: 3;
+  padding: 6px 16px; border: 4px solid; border-radius: 10px;
+  font-size: 30px; font-weight: 800; letter-spacing: 1px;
+  opacity: 0; pointer-events: none;
+}
+.badge.like { left: 22px; color: var(--green); border-color: var(--green); transform: rotate(-14deg); }
+.badge.nope { right: 22px; color: var(--red); border-color: var(--red); transform: rotate(14deg); }
+
+/* ---------- Кнопки ---------- */
+.controls { display: flex; gap: 28px; }
+.btn {
+  width: 68px; height: 68px; border-radius: 50%;
+  border: 2px solid currentColor;
+  background: var(--panel);
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: transform .18s var(--spring), box-shadow .25s ease, background .25s ease;
+}
+.btn svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.btn.like svg { fill: currentColor; stroke: none; }
+.btn.nope { color: var(--red); }
+.btn.like { color: var(--green); }
+.btn:hover { transform: scale(1.12); }
+.btn.nope:hover { box-shadow: 0 0 0 6px rgba(255, 75, 92, .14), 0 0 28px rgba(255, 75, 92, .65); background: rgba(255, 75, 92, .1); }
+.btn.like:hover { box-shadow: 0 0 0 6px rgba(47, 229, 160, .14), 0 0 28px rgba(47, 229, 160, .65); background: rgba(47, 229, 160, .1); }
+.btn:active { transform: scale(.84); transition-duration: .08s; }
+.btn:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.hint { font-size: 12px; color: var(--muted); opacity: .8; }
+
+/* ---------- Модалка мэтча ---------- */
+.match-modal {
+  position: fixed; inset: 0; z-index: 100;
+  background: radial-gradient(circle at 50% 40%, rgba(253, 38, 122, .35), rgba(10, 6, 16, .96) 70%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px; text-align: center;
+  opacity: 0; pointer-events: none; transition: opacity .35s ease;
+  overflow: hidden;
+}
+.match-modal.show { opacity: 1; pointer-events: all; }
+.match-modal h1 {
+  font-size: clamp(36px, 11vw, 56px); font-weight: 800; margin-bottom: 22px;
+  background: linear-gradient(90deg, var(--pink), var(--orange));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 18px rgba(253, 38, 122, .55));
+  transform: scale(.3) rotate(-12deg); opacity: 0;
+}
+.match-modal.show h1 { animation: pop .7s .1s var(--spring) forwards; }
+.match-modal img {
+  width: 220px; height: 220px; border-radius: 50%; object-fit: cover;
+  border: 5px solid var(--pink);
+  box-shadow: 0 0 0 10px rgba(253, 38, 122, .18), 0 0 50px rgba(253, 38, 122, .6);
+  margin-bottom: 22px; transform: scale(.3); opacity: 0;
+}
+.match-modal.show img { animation: pop .7s .25s var(--spring) forwards; }
+.match-modal p { font-size: 17px; color: #eadff7; max-width: 340px; line-height: 1.45; margin-bottom: 28px; position: relative; }
+.match-modal .go {
+  position: relative; border: 0; cursor: pointer; color: #fff; font: 700 16px 'Montserrat', sans-serif;
+  padding: 15px 40px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--pink), var(--orange));
+  box-shadow: 0 8px 26px rgba(253, 38, 122, .5);
+  transition: transform .18s var(--spring), box-shadow .25s;
+}
+.match-modal .go:hover { transform: scale(1.06); box-shadow: 0 10px 34px rgba(253, 38, 122, .8); }
+.match-modal .go:active { transform: scale(.92); }
+.match-joke {
+  position: relative; max-width: 340px; margin: -12px 0 26px; padding: 14px 18px; border-radius: 18px;
+  background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14);
+  font-size: 14px; line-height: 1.45;
+}
+.match-joke:empty { display: none; }
+@keyframes pop { to { transform: scale(1) rotate(-4deg); opacity: 1; } }
+.match-modal img { --r: 0deg; }
+
+/* конфетти */
+.confetti { position: absolute; top: -20px; border-radius: 2px; opacity: 0; pointer-events: none; }
+.match-modal.show .confetti { animation: fall linear infinite; }
+@keyframes fall {
+  0%   { transform: translate3d(0, -5vh, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--dx), 110vh, 0) rotate(var(--rot)); opacity: .9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .btn, .badge, .match-modal * { transition-duration: .01s !important; animation-duration: .01s !important; }
+  .confetti { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="paw">🐾</span><span>Tindpurr</span></div>
+  <div class="counter">Мэтчи: <b id="count">0</b></div>
+</header>
+
+<main>
+  <div class="deck" id="deck"></div>
+
+  <div class="controls">
+    <button class="btn nope" id="btn-nope" aria-label="Не нравится">
+      <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <button class="btn like" id="btn-like" aria-label="Нравится">
+      <svg viewBox="0 0 24 24"><path d="M12 21.2l-1.45-1.32C5.4 15.2 2 12.1 2 8.3 2 5.2 4.4 3 7.4 3c1.7 0 3.4.8 4.6 2.1C13.2 3.8 14.9 3 16.6 3 19.6 3 22 5.2 22 8.3c0 3.8-3.4 6.9-8.55 11.58L12 21.2z"/></svg>
+    </button>
+  </div>
+  <div class="hint">Свайпайте, жмите ← → или тапните по карточке за шуткой</div>
+</main>
+
+<div class="match-modal" id="match-modal" role="dialog" aria-modal="true" aria-label="Мэтч">
+  <h1>МЯУ-МЭТЧ!</h1>
+  <img id="match-img" src="" alt="Ваш мэтч">
+  <p id="match-text"></p>
+  <div class="match-joke" id="match-joke"></div>
+  <button class="go" id="match-close">Продолжить</button>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const deck = document.getElementById('deck');
+  const modal = document.getElementById('match-modal');
+  const countEl = document.getElementById('count');
+
+  const VISIBLE = 3;              // сколько карточек видно в стопке
+  const STACK_SIZE = 5;           // сколько всего держим наготове (остальные уже предзагружены)
+  const MATCH_CHANCE = 0.22;      // шанс «мяу-мэтча» после лайка
+  const JOKE_LANG = 'en';         // JokeAPI: en, de, cs, es, fr, pt (русского нет)
+  const SWIPE_DISTANCE = 110;     // порог свайпа в px
+  const SWIPE_VELOCITY = 0.55;    // порог скорости (px/ms)
+  const IMG_TIMEOUT = 7000;
+  const JOKE_TIMEOUT = 4000;
+
+  const NAMES = ["Барсик", "Мурзик", "Шершень", "Пельмень", "Котлета", "Босс", "Сэр Мяу", "Пиксель", "Черныш", "Рыжик"];
+  const BIOS = [
+    "Люблю скидывать кружки в 4 утра.",
+    "Ищу того, кто будет чесать пузо.",
+    "Начальник дивана.",
+    "Профессиональный лежебока.",
+    "Токсичный, но милый.",
+    "Мой любимый фильм — «Кошки против собак».",
+    "Ищу спонсора на корм премиум-класса.",
+    "Могу часами смотреть в стену."
+  ];
+  const MATCH_TEXTS = [
+    "Вы оба любите спать по 18 часов в сутки.",
+    "Идеальная пара для поедания корма в 3 часа ночи.",
+    "У вас 100% совпадение по шкале пушистости.",
+    "Он тоже ненавидит пылесос. Судьба!",
+    "Свадьба будет в ближайшем приюте."
+  ];
+
+  // Русские шутки: запасной вариант, когда JokeAPI недоступен или не знает язык
+  const LOCAL_JOKES = [
+    { type: 'twopart', setup: 'Почему коты не играют в покер?', delivery: 'Хвост выдаёт блеф.' },
+    { type: 'twopart', setup: 'Что кот сказал, скинув кружку со стола?', delivery: '«Гравитация работает. Проверено».' },
+    { type: 'twopart', setup: 'Что общего у кота и дедлайна?', delivery: 'Оба появляются внезапно и сбивают всё со стола.' },
+    { type: 'twopart', setup: 'Как называется кот-программист?', delivery: 'Кот-Dev. Постоянно роняет продакшен.' },
+    { type: 'single', joke: 'Я не толстый. Я просто пушистый в области живота.' },
+    { type: 'single', joke: 'Кот не ленивый. Он экономит силы для охоты на вашу ногу в 3 часа ночи.' }
+  ];
+
+  // Локальная заглушка (SVG в data-URI) — последний рубеж, если не грузится вообще ничего
+  const LOCAL_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 450">' +
+    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fd267a"/><stop offset="1" stop-color="#ff6036"/></linearGradient></defs>' +
+    '<rect width="320" height="450" fill="url(#g)"/>' +
+    '<path d="M80 190l-10-85 55 40q35-12 70 0l55-40-10 85q20 30 5 70-25 45-90 45t-90-45q-15-40 5-70z" fill="#2a1a33"/>' +
+    '<circle cx="125" cy="215" r="12" fill="#fff"/><circle cx="195" cy="215" r="12" fill="#fff"/>' +
+    '<path d="M150 245h20l-10 12z" fill="#fd267a"/>' +
+    '<text x="160" y="370" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#fff">Кот сегодня офлайн</text></svg>'
+  );
+
+  const queue = [];     // карточки в порядке стопки: [0] — верхняя
+  let pending = 0;      // сколько карточек ещё грузится
+  let busy = false;     // идёт анимация вылета
+  let modalOpen = false;
+  let matches = 0;
+
+  /* ---------- Загрузка котиков: картинка напрямую, без промежуточного JSON ---------- */
+  function catImageUrl() {
+    // уникальный параметр, чтобы браузер не отдавал одну и ту же кошку из кэша
+    return 'https://cataas.com/cat?width=640&height=900&t=' + Date.now() + Math.floor(Math.random() * 1e6);
+  }
+
+  // Предзагрузка через new Image(): карточка создаётся, только когда картинка уже в кэше
+  function preloadImage(url, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      const probe = new Image();
+      const timer = setTimeout(() => { probe.onload = probe.onerror = null; reject(new Error('Timeout')); }, timeoutMs);
+      probe.onload = () => { clearTimeout(timer); resolve(url); };
+      probe.onerror = () => { clearTimeout(timer); reject(new Error('Load error')); };
+      probe.src = url;
+    });
+  }
+
+  async function loadCatImage() {
+    for (const url of [catImageUrl(), 'https://http.cat/404', LOCAL_FALLBACK]) {
+      try { return await preloadImage(url, IMG_TIMEOUT); }
+      catch (err) { console.warn('Картинка не загрузилась, пробуем запасную:', err.message); }
+    }
+    return LOCAL_FALLBACK;
+  }
+
+  /* ---------- Шутки: v2.jokeapi.dev ---------- */
+  // AbortSignal не используем (в песочницах ломает fetch), таймаут — через Promise.race
+  function withTimeout(promise, ms) {
+    let timer;
+    const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Timeout')), ms); });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+  }
+
+  async function fetchJoke() {
+    try {
+      const res = await withTimeout(fetch('https://v2.jokeapi.dev/joke/Any?safe-mode&lang=' + JOKE_LANG), JOKE_TIMEOUT);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await withTimeout(res.json(), JOKE_TIMEOUT);
+      if (data.error) throw new Error(data.message || 'API error');
+      return data.type === 'twopart'
+        ? { type: 'twopart', setup: data.setup, delivery: data.delivery }
+        : { type: 'single', joke: data.joke };
+    } catch (err) {
+      console.warn('JokeAPI недоступен, берём локальную шутку:', err.message);
+      return null;
+    }
+  }
+
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  function buildCard(imgUrl) {
+    const name = pick(NAMES);
+    const age = 1 + Math.floor(Math.random() * 12);
+    const card = document.createElement('div');
+    card.className = 'card enter';
+    card.dataset.name = name;
+    card.innerHTML =
+      '<img alt="" draggable="false">' +
+      '<div class="badge like">LIKE</div>' +
+      '<div class="badge nope">NOPE</div>' +
+      '<div class="tap-hint">💬 Нажми — шутка</div>' +
+      '<div class="joke-panel"><div class="q"></div><div class="a"></div></div>' +
+      '<div class="info"><h2></h2><p></p><span class="dist"></span></div>';
+
+    const img = card.querySelector('img');
+    // цепочка запасных вариантов: исходный URL → http.cat → локальный SVG
+    img.addEventListener('error', () => {
+      if (img.dataset.fb === '2') return;
+      if (img.dataset.fb === '1') { img.dataset.fb = '2'; img.src = LOCAL_FALLBACK; }
+      else { img.dataset.fb = '1'; img.src = 'https://http.cat/404'; }
+    });
+    img.src = imgUrl;
+
+    card.querySelector('h2').innerHTML = name + '<small>' + age + '</small>';
+    card.querySelector('p').textContent = pick(BIOS);
+    card.querySelector('.dist').textContent = '📍 ' + (1 + Math.floor(Math.random() * 15)) + ' км от вас';
+
+    // шутка: сразу локальная, затем подменяется шуткой из API (если успела загрузиться)
+    card.joke = pick(LOCAL_JOKES);
+    fetchJoke().then(j => { if (j) card.joke = j; });
+
+    attachDrag(card);
+    return card;
+  }
+
+  async function fillStack() {
+    while (queue.length + pending < STACK_SIZE) {
+      pending++;
+      loadCatImage().then(url => {
+        const card = buildCard(url);
+        deck.appendChild(card);
+        queue.push(card);
+        void card.offsetWidth;            // фиксируем стартовое состояние .enter
+        card.classList.remove('enter');   // и плавно переходим в раскладку стопки
+        layout();
+      }).finally(() => { pending--; });
+    }
+  }
+
+  /* ---------- Раскладка стопки ---------- */
+  function layout() {
+    queue.forEach((card, i) => {
+      if (card.classList.contains('dragging')) return;
+      card.style.zIndex = String(10 - i);
+      card.style.transform = 'translateY(' + (i * 14) + 'px) scale(' + (1 - i * 0.05) + ')';
+      card.style.opacity = i < VISIBLE ? '1' : '0';
+      card.style.filter = 'brightness(' + (1 - i * 0.18) + ')';
+      if (i === 0) resetBadges(card);
+    });
+  }
+
+  function resetBadges(card) {
+    card.querySelector('.badge.like').style.opacity = 0;
+    card.querySelector('.badge.nope').style.opacity = 0;
+  }
+
+  /* ---------- Свайп (мышь и палец через Pointer Events) ---------- */
+  function attachDrag(card) {
+    const like = card.querySelector('.badge.like');
+    const nope = card.querySelector('.badge.nope');
+    let startX = 0, startY = 0, dx = 0, dy = 0, t0 = 0, active = false;
+
+    card.addEventListener('pointerdown', e => {
+      if (busy || modalOpen || card !== queue[0]) return;
+      active = true;
+      startX = e.clientX; startY = e.clientY; dx = dy = 0; t0 = performance.now();
+      card.classList.add('dragging');
+      card.setPointerCapture(e.pointerId);
+    });
+
+    card.addEventListener('pointermove', e => {
+      if (!active) return;
+      dx = e.clientX - startX;
+      dy = e.clientY - startY;
+      card.style.transform = 'translate(' + dx + 'px,' + (dy * 0.35) + 'px) rotate(' + (dx * 0.07) + 'deg)';
+      const p = Math.min(Math.max((Math.abs(dx) - 30) / 90, 0), 1);
+      like.style.opacity = dx > 0 ? p : 0;
+      nope.style.opacity = dx < 0 ? p : 0;
+    });
+
+    const finish = e => {
+      if (!active) return;
+      active = false;
+      card.classList.remove('dragging');
+      const elapsed = performance.now() - t0;
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && elapsed < 400) {   // короткий тап → шутка
+        layout();
+        nextJokeStep(card);
+        return;
+      }
+      const velocity = Math.abs(dx) / Math.max(elapsed, 1);
+      if (Math.abs(dx) > SWIPE_DISTANCE || (velocity > SWIPE_VELOCITY && Math.abs(dx) > 40)) {
+        flyAway(dx > 0 ? 1 : -1);
+      } else {
+        layout();   // упругий возврат (spring cubic-bezier)
+      }
+    };
+    card.addEventListener('pointerup', finish);
+    card.addEventListener('pointercancel', finish);
+  }
+
+  /* ---------- Шутка: тап → завязка, ещё тап → панчлайн, ещё тап → закрыть ---------- */
+  function nextJokeStep(card) {
+    const panel = card.querySelector('.joke-panel');
+    const step = Number(card.dataset.jstep || 0);
+    if (step === 0) {
+      card.activeJoke = card.joke;   // фиксируем, чтобы завязка и панчлайн были из одной шутки
+      const j = card.activeJoke;
+      panel.querySelector('.q').textContent = j.type === 'twopart' ? j.setup : j.joke;
+      panel.querySelector('.a').textContent = '';
+      panel.classList.remove('revealed');
+      panel.classList.add('show');
+      card.classList.add('joking');
+      card.dataset.jstep = j.type === 'twopart' ? 1 : 2;
+    } else if (step === 1) {
+      panel.querySelector('.a').textContent = card.activeJoke.delivery;
+      panel.classList.add('revealed');
+      card.dataset.jstep = 2;
+    } else {
+      panel.classList.remove('show', 'revealed');
+      card.classList.remove('joking');
+      card.dataset.jstep = 0;
+    }
+  }
+
+  /* ---------- Вылет карточки ---------- */
+  function flyAway(dir) {
+    if (busy || modalOpen || !queue.length) return;
+    busy = true;
+
+    const card = queue.shift();
+    card.classList.add('flying');
+    card.style.zIndex = '50';
+    card.style.transform = 'translate(' + (dir * window.innerWidth * 1.1) + 'px,-60px) rotate(' + (dir * 40) + 'deg)';
+    card.style.opacity = '0';
+    card.querySelector(dir > 0 ? '.badge.like' : '.badge.nope').style.opacity = 1;
+
+    layout();        // остальные карточки сразу подтягиваются вверх
+    fillStack();     // подгружаем новую
+
+    if (dir > 0) {
+      matches++;
+      countEl.textContent = matches;
+      countEl.classList.remove('bump'); void countEl.offsetWidth; countEl.classList.add('bump');
+    }
+
+    const img = card.querySelector('img').src;
+    const name = card.dataset.name;
+    const joke = card.activeJoke || card.joke;
+    setTimeout(() => {
+      card.remove();
+      busy = false;
+      if (dir > 0 && Math.random() < MATCH_CHANCE) showMatch(name, img, joke);
+    }, 480);
+  }
+
+  /* ---------- Кнопки и клавиатура ---------- */
+  document.getElementById('btn-nope').addEventListener('click', () => flyAway(-1));
+  document.getElementById('btn-like').addEventListener('click', () => flyAway(1));
+  document.addEventListener('keydown', e => {
+    if (modalOpen) { if (e.key === 'Escape' || e.key === 'Enter') closeMatch(); return; }
+    if (e.key === 'ArrowLeft') flyAway(-1);
+    if (e.key === 'ArrowRight') flyAway(1);
+    if ((e.key === 'ArrowUp' || e.key === ' ' || e.key.toLowerCase() === 'j') && queue[0] && !busy) {
+      e.preventDefault();
+      nextJokeStep(queue[0]);
+    }
+  });
+
+  /* ---------- Звук «мяу» (Web Audio API, без файлов) ---------- */
+  let audioCtx = null;
+  function meow() {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const t = audioCtx.currentTime;
+
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(420, t);
+      osc.frequency.exponentialRampToValueAtTime(900, t + 0.2);   // «мя-»
+      osc.frequency.exponentialRampToValueAtTime(380, t + 0.75);  // «-ау»
+
+      const formant = audioCtx.createBiquadFilter();              // имитация «рта»
+      formant.type = 'bandpass';
+      formant.Q.value = 3;
+      formant.frequency.setValueAtTime(700, t);
+      formant.frequency.exponentialRampToValueAtTime(1800, t + 0.25);
+      formant.frequency.exponentialRampToValueAtTime(600, t + 0.75);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.5, t + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+
+      osc.connect(formant).connect(gain).connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.85);
+    } catch (err) {
+      console.warn('Звук недоступен:', err);
+    }
+  }
+
+  /* ---------- Модалка мэтча + конфетти ---------- */
+  function spawnConfetti() {
+    modal.querySelectorAll('.confetti').forEach(n => n.remove());
+    const colors = ['#fd267a', '#ff6036', '#ffd23f', '#2fe5a0', '#4cc9f0', '#c77dff'];
+    for (let i = 0; i < 60; i++) {
+      const c = document.createElement('i');
+      c.className = 'confetti';
+      const size = 6 + Math.random() * 8;
+      c.style.left = Math.random() * 100 + '%';
+      c.style.width = size + 'px';
+      c.style.height = size * (0.5 + Math.random()) + 'px';
+      c.style.background = pick(colors);
+      c.style.animationDuration = (2.5 + Math.random() * 3) + 's';
+      c.style.animationDelay = (-Math.random() * 5) + 's';
+      c.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px');
+      c.style.setProperty('--rot', (360 + Math.random() * 720) + 'deg');
+      modal.appendChild(c);
+    }
+  }
+
+  function showMatch(name, img, joke) {
+    modalOpen = true;
+    document.getElementById('match-img').src = img;
+    document.getElementById('match-text').textContent = name + ': ' + pick(MATCH_TEXTS);
+    document.getElementById('match-joke').textContent = joke
+      ? '😹 ' + (joke.type === 'twopart' ? joke.setup + ' — ' + joke.delivery : joke.joke)
+      : '';
+    spawnConfetti();
+    modal.classList.remove('show'); void modal.offsetWidth;   // перезапуск анимаций
+    modal.classList.add('show');
+    meow();
+    document.getElementById('match-close').focus();
+  }
+
+  function closeMatch() {
+    modal.classList.remove('show');
+    modalOpen = false;
+  }
+  document.getElementById('match-close').addEventListener('click', closeMatch);
+
+  /* ---------- Старт ---------- */
+  fillStack();
+})();
+</script>
+</body>
+</html>
