@@ -30,7 +30,7 @@ body{background:radial-gradient(ellipse at 50% -10%,#2e1840 0%,#14101a 60%);colo
 .toprow{display:flex;align-items:center;justify-content:space-between}
 .matches{font:700 13px Montserrat,sans-serif;background:rgba(255,255,255,.08);padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.1)}
 .welcome{text-align:center;font-family:var(--deco);font-size:24px;line-height:1.3;letter-spacing:2px;margin:14px 0 20px;color:#f2ecff;text-transform:uppercase}
-.menu{display:flex;flex-direction:column;gap:18px}
+.menu{display:flex;flex-direction:column;gap:14px}
 .mbtn{position:relative;border:0;cursor:pointer;text-align:left;color:#fff;font-family:var(--deco);font-size:38px;letter-spacing:2px;padding:22px 22px 58px;border-radius:24px;background:linear-gradient(180deg,var(--card1),var(--card2));box-shadow:0 10px 30px rgba(0,0,0,.4);overflow:hidden;transition:transform .15s var(--spring),box-shadow .2s}
 .mbtn:hover{box-shadow:0 0 0 2px rgba(253,38,122,.5),0 10px 30px rgba(0,0,0,.4)}
 .mbtn:active{transform:scale(.97)}
@@ -219,10 +219,36 @@ body,.window{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-ar
 @keyframes chk{50%{transform:scale(1.22)}}
 .pub-prev{display:block;max-width:100%;max-height:44vh;margin:0 auto;border-radius:20px;object-fit:contain;box-shadow:0 14px 36px rgba(0,0,0,.55)}
 .pub .go{width:100%}
+.menu .mbtn{padding:18px 22px 50px}
+.pub-card p{font-size:13.5px;line-height:1.55;color:#d9cfe8}
+.pub-card b{color:#fff}
+.info p.tags{color:#ff7aa8;font-weight:600}
+.mg-tags{font-size:13px;line-height:1.5;color:var(--pink);text-align:center;font-weight:600;margin-top:-6px}
+.mg-tags:empty{display:none}
+.skip{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:5;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font:700 14px Montserrat,sans-serif;letter-spacing:.5px;padding:12px 28px;border-radius:999px;cursor:pointer;animation:skipIn .35s var(--spring) backwards}
+.skip:active{transform:translateX(-50%) scale(.94)}
+@keyframes skipIn{from{opacity:0;transform:translateX(-50%) translateY(14px)}}
+.dlg .sopt{width:76%;margin:10px auto 0;padding:12px 16px;font-size:15px}
 </style>
 </head>
 <body>
-<div id="splash" aria-label="Загрузка"><div class="sp-paw">🐾</div><div class="sp-title">Tindpurr</div><div class="sp-bar"><i></i></div></div>
+<div id="splash" aria-label="Загрузка"><div class="sp-paw">🐾</div><div class="sp-title">Tindpurr</div><div class="sp-bar"><i></i></div><button class="skip" id="skip-splash" hidden>Пропустить</button></div>
+<script>
+// Заставка: ждём шрифты и загрузку страницы (минимум 0,8 с). Если дольше 4 с — снизу появляется «Пропустить»; жёсткий предел 8 с.
+// Скрипт стоит сразу после заставки, чтобы работать, даже если остальные скрипты (например, Telegram) грузятся долго.
+(()=>{const splash=document.getElementById('splash'),skip=document.getElementById('skip-splash');if(!splash)return;
+ let gone=false;
+ const wait=ms=>new Promise(r=>setTimeout(r,ms));
+ const hide=()=>{if(gone)return;gone=true;skip.hidden=true;document.documentElement.classList.remove('boot');splash.classList.add('hide');setTimeout(()=>splash.remove(),500)};
+ skip.onclick=hide;
+ setTimeout(()=>{if(!gone)skip.hidden=false},4000);
+ const loaded=new Promise(r=>document.readyState==='complete'?r():addEventListener('load',r));
+ const fonts=document.fonts?Promise.allSettled([document.fonts.load('600 16px Montserrat'),document.fonts.load('500 16px Oswald'),document.fonts.load('16px "Dark Deco"')]).then(()=>document.fonts.ready):Promise.resolve();
+ Promise.all([Promise.race([Promise.all([fonts,loaded]),wait(8000)]),wait(800)]).then(hide);
+ setTimeout(hide,9000);   // страховка
+ addEventListener('DOMContentLoaded',()=>{const v=document.getElementById('app-ver');if(v)console.info('Tindpurr',v.textContent)});
+})();
+</script>
 <div class="wrap">
 <div class="toprow"><div class="logo">🐾 <span>Tindpurr</span></div><div class="matches"><span class="mtxt">Мэтчи:&nbsp;<b id="mcnt">0</b></span><button class="eye" id="open-matches" aria-label="Мои мэтчи">👁️</button></div></div>
 <div class="welcome">Добро пожаловать на №1 площадку<br>для знакомств!</div>
@@ -230,25 +256,27 @@ body,.window{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-ar
 <button class="mbtn" id="open-date">ЗНАКОМСТВА<span class="ico">🐈‍⬛</span></button>
 <button class="mbtn" id="open-games">ИГРЫ<span class="ico">🎮</span></button>
 <button class="mbtn" id="open-settings">НАСТРОЙКИ<span class="ico">⚙️</span></button>
+<button class="mbtn" id="open-about">О СЕРВИСЕ<span class="ico">ℹ️</span></button>
 </div>
-<div class="footer">@TINDPURR_BOT<br><small>ПОМНИТЕ: ТИНДПУРР - ВСЕГО ЛИШЬ ИГРА, НЕ СТОИТ ЗАВОДИТЬ ОТНОШЕНИЯ С КОТАМИ</small><div class="ver" id="app-ver">Version: 1.2</div></div>
+<div class="footer">@TINDPURR_BOT<br><small>ПОМНИТЕ: ТИНДПУРР - ВСЕГО ЛИШЬ ИГРА, НЕ СТОИТ ЗАВОДИТЬ ОТНОШЕНИЯ С КОТАМИ</small><div class="ver" id="app-ver">Version: 1.3</div></div>
 </div>
-<div class="window" id="win-date" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>ЗНАКОМСТВА</h3></div><div class="wbody"><div class="deck" id="deck"><div class="deck-loader" id="deck-loader"><div><b>🐾</b>Поиск котиков<span class="dots"><i>.</i><i>.</i><i>.</i></span></div></div></div><div class="controls"><button class="btn nope" id="btn-nope" aria-label="Не нравится"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button><button class="btn like" id="btn-like" aria-label="Нравится"><svg viewBox="0 0 24 24"><path d="M12 21.2l-1.45-1.32C5.4 15.2 2 12.1 2 8.3 2 5.2 4.4 3 7.4 3c1.7 0 3.4.8 4.6 2.1C13.2 3.8 14.9 3 16.6 3 19.6 3 22 5.2 22 8.3c0 3.8-3.4 6.9-8.55 11.58L12 21.2z"/></svg></button></div><div style="font-size:11px;opacity:.5;margin-top:10px">Свайпайте, жмите ← → или кнопки</div></div></div>
+<div class="window" id="win-date" inert><button class="skip" id="skip-date" hidden>Пропустить</button><div class="whead"><button data-close aria-label="Назад">←</button><h3>ЗНАКОМСТВА</h3></div><div class="wbody"><div class="deck" id="deck"><div class="deck-loader" id="deck-loader"><div><b>🐾</b>Поиск котиков<span class="dots"><i>.</i><i>.</i><i>.</i></span></div></div></div><div class="controls"><button class="btn nope" id="btn-nope" aria-label="Не нравится"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button><button class="btn like" id="btn-like" aria-label="Нравится"><svg viewBox="0 0 24 24"><path d="M12 21.2l-1.45-1.32C5.4 15.2 2 12.1 2 8.3 2 5.2 4.4 3 7.4 3c1.7 0 3.4.8 4.6 2.1C13.2 3.8 14.9 3 16.6 3 19.6 3 22 5.2 22 8.3c0 3.8-3.4 6.9-8.55 11.58L12 21.2z"/></svg></button></div><div style="font-size:11px;opacity:.5;margin-top:10px">Свайпайте, жмите ← → или кнопки</div></div></div>
 <div class="window" id="win-games" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>ИГРЫ</h3></div><div class="wbody"><div class="gmenu">
 <button class="mbtn" id="open-rps">КАМЕНЬ-НОЖНИЦЫ-БУМАГА<span class="ico">✂️</span></button>
 <button class="mbtn" id="open-ttt">КРЕСТИКИ-НОЛИКИ<span class="ico">❌</span></button>
 </div></div></div>
-<div class="window" id="win-rps" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>КАМЕНЬ-НОЖНИЦЫ-БУМАГА</h3></div><div class="wbody"><div class="gbox">
+<div class="window" id="win-rps" inert><button class="skip" id="skip-rps" hidden>Пропустить</button><div class="whead"><button data-close aria-label="Назад">←</button><h3>КАМЕНЬ-НОЖНИЦЫ-БУМАГА</h3></div><div class="wbody"><div class="gbox">
 <div class="opponent" id="rps-opp"><img id="rps-cat-img" alt=""><div><div class="oname" id="rps-cat-name">Поиск кота…</div><div class="osub">Счёт <span id="rps-score">0:0</span></div></div><button class="go small" id="rps-new">🎲 другой кот</button></div>
 <div id="rps-area"><div class="rps-row"><button data-rps="rock" aria-label="Камень">🪨</button><button data-rps="scissors" aria-label="Ножницы">✂️</button><button data-rps="paper" aria-label="Бумага">📄</button></div><div id="rps-res">Выбери жест 🐾</div></div>
 </div></div></div>
-<div class="window" id="win-ttt" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>КРЕСТИКИ-НОЛИКИ</h3></div><div class="wbody"><div class="gbox">
+<div class="window" id="win-ttt" inert><button class="skip" id="skip-ttt" hidden>Пропустить</button><div class="whead"><button data-close aria-label="Назад">←</button><h3>КРЕСТИКИ-НОЛИКИ</h3></div><div class="wbody"><div class="gbox">
 <div class="opponent" id="ttt-opp"><img id="ttt-cat-img" alt=""><div><div class="oname" id="ttt-cat-name">Поиск кота…</div><div class="osub" id="ttt-status">Ты — ❌, кот — ⭕</div></div><button class="go small" id="ttt-new">🎲 другой кот</button></div>
 <div id="ttt-area"><div class="ttt" id="ttt"></div><div style="margin-top:12px"><button class="go small" id="ttt-reset">Заново</button></div></div>
 </div></div></div>
 <div class="window" id="win-matches" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>МОИ МЭТЧИ</h3></div><div class="wbody">
 <div class="mg" id="mg-view"><div class="mg-stage" id="mg-stage"><img id="mg-img" alt="Кот из мэтча" draggable="false"></div>
 <div class="mg-row"><button id="mg-prev" aria-label="Предыдущий">‹</button><div class="mg-meta"><div class="oname" id="mg-name"></div><div class="osub" id="mg-sub"></div></div><button id="mg-next" aria-label="Следующий">›</button></div>
+<div class="mg-tags" id="mg-tags"></div>
 <button class="go" id="mg-copy">🔗 Скопировать URL</button></div>
 <div class="mg-empty" id="mg-empty" hidden>😿<br>Пока нет мэтчей.<br>Свайпайте вправо в «Знакомствах»!</div>
 </div></div>
@@ -272,6 +300,19 @@ body,.window{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-ar
 </div>
 <input type="file" id="pub-file" accept="image/*" hidden>
 </div></div>
+<div class="window" id="win-about" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>О СЕРВИСЕ</h3></div><div class="wbody"><div class="pub about">
+<div class="pub-card"><h4>Что такое Tindpurr</h4><p>Tindpurr — это «тиндер для котиков»: мини-приложение для Telegram, где можно листать фото котов, ставить лайки, получать мэтчи и играть с котами. Это игра и шутка, а не сервис знакомств для людей.</p></div>
+<div class="pub-card"><h4>Что он умеет</h4><ul>
+<li><b>Знакомства.</b> Свайп вправо — лайк, влево — пропуск. Иногда выпадает «МЯУ-МЭТЧ»: такие коты сохраняются, их можно посмотреть по кнопке 👁️ в шапке и скопировать ссылку на фото.</li>
+<li><b>Игры.</b> Камень-ножницы-бумага и крестики-нолики против случайного кота.</li>
+<li><b>Профиль.</b> Имя берётся из Telegram, а аватар можно взять оттуда же, выбрать случайного кота или загрузить фото из галереи.</li>
+<li><b>Настройки.</b> Сообщения и ошибки можно показывать в стиле приложения или как системные окна iOS.</li>
+</ul></div>
+<div class="pub-card"><h4>Откуда берутся коты</h4><p>Фото приходят из открытого сервиса CATAAS (cataas.com). Хештеги на карточке — это теги, которые добавил автор фото в CATAAS. Если у фото тегов нет, показывается шуточное описание. Чужие фото мы у себя не храним.</p></div>
+<div class="pub-card"><h4>Что хранится у вас</h4><p>Профиль, аватар, настройки и список мэтчей хранятся на вашем устройстве (имя и часть настроек Telegram может синхронизировать между устройствами). Своего сервера у приложения нет, мы ничего не собираем и не показываем рекламу. Но, как и любой сайт, cataas.com и Google Fonts видят запросы вашего устройства.</p></div>
+<div class="pub-card"><h4>Важно</h4><p>Tindpurr — всего лишь игра: мэтчи не настоящие, а коты вам не ответят.</p></div>
+<div class="pub-card"><h4>О проекте</h4><p>Версия <b id="about-ver"></b> · лицензия GPL-3.0 · открытый исходный код.</p><button class="go" id="about-gh" style="margin-top:12px">Исходный код на GitHub</button></div>
+</div></div></div>
 <div class="window" id="win-settings" inert><div class="whead"><button data-close aria-label="Назад">←</button><h3>НАСТРОЙКИ</h3></div><div class="wbody"><div class="ava-wrap"><img class="avatar" id="ava" alt="Аватар"><button class="go small" id="ava-edit">✏️ Изменить</button><input type="file" id="ava-file" accept="image/*" hidden></div><div class="field"><label>Имя кота</label><input id="p-name" maxlength="20"></div><div class="field"><label>Возраст</label><input id="p-age" type="number" min="1" max="25"></div><div class="field"><label>О себе</label><textarea id="p-bio" maxlength="120" rows="3"></textarea></div><div class="field"><button class="go" id="open-publish" style="width:100%;background:#2d2438">📤 Опубликовать своего кота</button></div>
 <div class="field"><label>Вид сообщений и ошибок</label><div class="seg" role="group"><button id="ui-ours" class="on" aria-pressed="true">Наш UI</button><button id="ui-sys" aria-pressed="false">Системные сообщения</button></div><button class="go small" id="ui-test" style="margin-top:10px;background:#2d2438">Показать пример</button></div>
 <div style="display:flex;gap:8px;margin-top:12px"><button class="go" id="save-p">Сохранить</button></div></div></div>
@@ -318,7 +359,9 @@ function showMsg(o){
    o.buttons.forEach(b=>{const x=document.createElement('button');x.textContent=b.text;if(b.primary)x.className='bold';x.onclick=()=>done(b.id);box.appendChild(x)});
   }else{
    $('dlg-emoji').textContent=o.emoji||'🐾';$('dlg-title').textContent=(o.title||'').toUpperCase();$('dlg-text').textContent=o.text;
-   o.buttons.forEach(b=>{const x=document.createElement('button');x.textContent=b.text;x.className=b.primary?'go':'sopt cancel';x.onclick=()=>done(b.id);box.appendChild(x)});
+   [...o.buttons].sort((a,b)=>(b.primary?1:0)-(a.primary?1:0)).forEach(b=>{   // главная кнопка сверху, второстепенные снизу
+    const x=document.createElement('button');x.textContent=b.text;x.className=b.primary?'go':'sopt cancel';x.onclick=()=>done(b.id);box.appendChild(x)});
+   $('dlg').onclick=e=>{if(!e.target.closest('button'))done(cancelId)};   // тап в любом другом месте закрывает окно
   }
   closers[elId]=()=>res(cancelId);                  // закрытие по Esc / «Назад» = отмена
   openWin(elId);
@@ -335,7 +378,7 @@ const store={
 };
 // окна: стек + кнопка «Назад» Telegram
 const stack=[];
-const hooks={'win-date':()=>fill(),'win-rps':()=>findOpponent('rps'),'win-ttt':()=>findOpponent('ttt'),'win-settings':()=>initAva()};
+const hooks={'win-date':()=>{fill();armDeckSkip()},'win-rps':()=>findOpponent('rps'),'win-ttt':()=>findOpponent('ttt'),'win-settings':()=>initAva()};
 const done={};
 function syncBack(){try{if(tg&&tg.BackButton)stack.length?tg.BackButton.show():tg.BackButton.hide()}catch(e){}}
 function openWin(id){if(stack.includes(id))return;const w=$(id);if(w.classList.contains('window'))w.style.zIndex=80+stack.length;   // открытое позже — выше (раньше решал порядок в DOM)
@@ -396,18 +439,25 @@ async function loadCardCat(){
  try{
   const r=await withTimeout(fetch('https://cataas.com/cat?json=true&t='+Date.now()),4000);
   const j=await withTimeout(r.json(),4000);const id=j.id||j._id;
-  if(id){const u='https://cataas.com/cat/'+id+'?width=640&height=900';await preload(u);return{url:u,id}}
+  if(id){const u='https://cataas.com/cat/'+id+'?width=640&height=900';await preload(u);return{url:u,id,tags:Array.isArray(j.tags)?j.tags:[]}}
  }catch(e){}
- return{url:await loadCat(),id:''};   // запасной путь: случайный кот без id
+ return{url:await loadCat(),id:'',tags:[]};   // запасной путь: случайный кот без id
 }
-// мэтчи: список хранится в localStorage (имя, картинка, ссылка, дата)
+// хештеги из тегов, которые добавил автор фото (чистим: пробелы → «_», дубли, слишком длинные)
+function hashtags(tags,max=5){
+ const seen=new Set();
+ return (Array.isArray(tags)?tags:[]).map(t=>String(t).trim().replace(/\s+/g,'_'))
+  .filter(t=>t&&t.length<=24&&!seen.has(t.toLowerCase())&&seen.add(t.toLowerCase()))
+  .slice(0,max).map(t=>'#'+t).join(' ');
+}
+// мэтчи: список хранится в localStorage (имя, картинка, ссылка, дата, теги)
 let matchList=[];
 try{const l=JSON.parse(localStorage.getItem('tp_matchlist')||'[]');if(Array.isArray(l))matchList=l.filter(m=>m&&typeof m.name==='string'&&typeof m.img==='string')}catch(e){}
 $('mcnt').textContent=matchList.length;
 function saveMatch(c){
  const id=c.dataset.id||'',img=c.querySelector('img').src;
  if(id&&matchList.some(m=>m.id===id))return;   // этот кот уже в мэтчах
- matchList.unshift({id,name:c.dataset.name,img,url:id?'https://cataas.com/cat/'+id:img,t:Date.now()});
+ matchList.unshift({id,name:c.dataset.name,img,url:id?'https://cataas.com/cat/'+id:img,tags:c.tags||[],t:Date.now()});
  matchList=matchList.slice(0,200);
  try{localStorage.setItem('tp_matchlist',JSON.stringify(matchList))}catch(e){}
  $('mcnt').textContent=matchList.length;
@@ -428,7 +478,8 @@ function burst(el,list,n=14){const r=el.getBoundingClientRect(),cx=r.left+r.widt
 function play(el,cls){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),950)}
 // колода
 const deck=$('deck'),queue=[];let pending=0,busy=false;
-function build(cat){const u=cat.url;const n=pick(NAMES);const c=document.createElement('div');c.className='card enter';c.dataset.name=n;c.dataset.id=cat.id||'';if(u===FALL)c.dataset.ph=1;c.innerHTML='<img draggable="false"><div class="badge like">LIKE</div><div class="badge nope">NOPE</div><div class="info"><h2>'+n+'</h2><p>'+pick(BIOS)+'</p><span class="dist">📍 '+(1+Math.floor(Math.random()*10))+' км от вас</span></div>';const im=c.querySelector('img');im.onerror=async()=>{if(im.dataset.r)return;im.dataset.r=1;im.src=await loadCat()};im.src=u;drag(c);return c}
+function build(cat){const u=cat.url;const n=pick(NAMES);const c=document.createElement('div');c.className='card enter';c.dataset.name=n;c.dataset.id=cat.id||'';if(u===FALL)c.dataset.ph=1;c.innerHTML='<img draggable="false"><div class="badge like">LIKE</div><div class="badge nope">NOPE</div><div class="info"><h2></h2><p></p><span class="dist">📍 '+(1+Math.floor(Math.random()*10))+' км от вас</span></div>';c.querySelector('h2').textContent=n;c.tags=cat.tags||[];const ht=hashtags(c.tags),bp=c.querySelector('.info p');bp.textContent=ht||pick(BIOS);if(ht)bp.classList.add('tags');   // хештеги автора вместо шуточного описания
+ const im=c.querySelector('img');im.onerror=async()=>{if(im.dataset.r)return;im.dataset.r=1;im.src=await loadCat()};im.src=u;drag(c);return c}
 const FAIL_LIMIT=3;   // сколько картинок подряд должно не загрузиться, чтобы показать окно
 let catFails=0,netShown=false;
 function noteCat(ok){
@@ -436,7 +487,7 @@ function noteCat(ok){
  if(++catFails>=FAIL_LIMIT&&!netShown&&stack.includes('win-date')){netShown=true;hap();netDownDialog()}
 }
 function fill(){while(queue.length+pending<5){pending++;loadCardCat().then(cat=>{noteCat(cat.url!==FALL);const k=build(cat);deck.appendChild(k);queue.push(k);layout()}).finally(()=>pending--)}}
-function layout(){$('deck-loader').hidden=queue.length>0;queue.forEach((c,i)=>{if(c.classList.contains('dragging'))return;c.style.zIndex=10-i;c.style.transform='translateY('+(i*14)+'px) scale('+(1-i*.05)+')';c.style.opacity=i<3?1:0})}
+function layout(){$('deck-loader').hidden=queue.length>0;if(queue.length)$('skip-date').hidden=true;queue.forEach((c,i)=>{if(c.classList.contains('dragging'))return;c.style.zIndex=10-i;c.style.transform='translateY('+(i*14)+'px) scale('+(1-i*.05)+')';c.style.opacity=i<3?1:0})}
 function drag(card){let sx=0,sy=0,dx=0,dy=0,on=false;const L=card.querySelector('.like'),N=card.querySelector('.nope');card.addEventListener('pointerdown',e=>{if(busy||card!==queue[0])return;on=true;sx=e.clientX;sy=e.clientY;dx=0;dy=0;card.classList.add('dragging');try{card.setPointerCapture(e.pointerId)}catch(_){}});card.addEventListener('pointermove',e=>{if(!on)return;dx=e.clientX-sx;dy=e.clientY-sy;card.style.transform='translate('+dx+'px,'+dy+'px) rotate('+(dx*.07)+'deg)';L.style.opacity=dx>0?Math.min(dx/90,1):0;N.style.opacity=dx<0?Math.min(-dx/90,1):0});const end=()=>{if(!on)return;on=false;card.classList.remove('dragging');Math.abs(dx)>100?fly(dx>0?1:-1):layout()};card.addEventListener('pointerup',end);card.addEventListener('pointercancel',end)}
 function fly(d){if(busy||!queue.length)return;busy=true;hap();const c=queue.shift();c.classList.remove('enter');c.classList.add('flying');const dy=(Math.random()*120-60);c.style.transform='translate('+(d*innerWidth)+'px,'+dy+'px) rotate('+(d*25)+'deg)';c.style.opacity=0;layout();fill();setTimeout(()=>{c.remove();busy=false;if(d>0&&Math.random()<.22){if(!$('win-date').classList.contains('open'))return;saveMatch(c);$('mimg').src=c.querySelector('img').src;$('mtext').textContent=(pn.value.trim()||'Ты')+' + '+c.dataset.name+' = мэтч!';$('modal').classList.add('show');meow();confetti();hap('ok')}},450)}
 $('btn-like').onclick=()=>fly(1);$('btn-nope').onclick=()=>fly(-1);$('mclose').onclick=()=>$('modal').classList.remove('show');
@@ -446,11 +497,22 @@ document.addEventListener('keydown',e=>{
  if(stack[stack.length-1]==='win-matches'){if(e.key==='ArrowLeft')galleryGo(-1);if(e.key==='ArrowRight')galleryGo(1);return}
  if(stack[stack.length-1]!=='win-date')return;
  if(e.key==='ArrowRight')fly(1);if(e.key==='ArrowLeft')fly(-1)});
+// «Пропустить» в знакомствах: если карточки не грузятся 4 с, показываем кнопку; по нажатию — карточки-заглушки
+let deckSkipTimer=0;
+function armDeckSkip(){
+ clearTimeout(deckSkipTimer);$('skip-date').hidden=true;
+ deckSkipTimer=setTimeout(()=>{if(!queue.length)$('skip-date').hidden=false},4000);
+}
+$('skip-date').onclick=()=>{
+ $('skip-date').hidden=true;netShown=true;   // человек сам решил играть — окно «сервис не отвечает» уже не нужно
+ for(let i=0;i<3;i++){const k=build({url:FALL,id:'',tags:[]});deck.appendChild(k);queue.push(k)}
+ layout();
+};
 // окно «сервис не отвечает»
 function retryCats(){
  catFails=0;netShown=false;
  queue.forEach(c=>{if(!c.dataset.ph)return;const im=c.querySelector('img');
-  loadCardCat().then(t=>{noteCat(t.url!==FALL);if(t.url!==FALL){im.src=t.url;c.dataset.id=t.id;delete c.dataset.ph}})});   // заглушки заменяются на настоящих котов
+  loadCardCat().then(t=>{noteCat(t.url!==FALL);if(t.url!==FALL){im.src=t.url;c.dataset.id=t.id;c.tags=t.tags||[];const ht=hashtags(c.tags);if(ht){const bp=c.querySelector('.info p');bp.textContent=ht;bp.classList.add('tags')}delete c.dataset.ph}})});   // заглушки заменяются на настоящих котов
  if(!queue.length)fill();
 }
 async function netDownDialog(){
@@ -467,7 +529,7 @@ function renderGallery(){
  gi=Math.min(Math.max(gi,0),n-1);
  const m=matchList[gi],im=$('mg-img');
  im.classList.remove('in');im.src=m.img;void im.offsetWidth;im.classList.add('in');
- $('mg-name').textContent=m.name;
+ $('mg-name').textContent=m.name;$('mg-tags').textContent=hashtags(m.tags);
  $('mg-sub').textContent=(gi+1)+' из '+n+' · '+new Date(m.t).toLocaleDateString('ru-RU');
  $('mg-prev').disabled=gi===0;$('mg-next').disabled=gi===n-1;
  [gi-1,gi+1].forEach(i=>{if(matchList[i])new Image().src=matchList[i].img});   // подгружаем соседей
@@ -499,7 +561,11 @@ async function findOpponent(g){
  $(g+'-cat-img').src=PAW;
  $(g+'-cat-name').innerHTML='Поиск кота<span class="dots"><i>.</i><i>.</i><i>.</i></span>';
  if(g==='ttt')$('ttt-status').textContent='Подбираем соперника…';
- const [url]=await Promise.all([loadCat(),sleep(1200)]);   // минимум 1.2 с, чтобы поиск было видно
+ const btn=$('skip-'+g);let skip;const skipP=new Promise(r=>skip=r);
+ btn.hidden=true;btn.onclick=()=>skip(FALL);                      // «Пропустить»: играем с котом-заглушкой
+ const timer=setTimeout(()=>{if(t===searchTok[g])btn.hidden=false},4000);   // через 4 с поиска показываем кнопку
+ const [url]=await Promise.all([Promise.race([loadCat(),skipP]),sleep(1200)]);   // минимум 1.2 с, чтобы поиск было видно
+ clearTimeout(timer);if(t===searchTok[g])btn.hidden=true;
  if(t!==searchTok[g])return;                                // пришёл более новый поиск
  $(g+'-cat-name').textContent=pick(NAMES);
  $(g+'-cat-img').src=url;
@@ -677,20 +743,11 @@ $('pub-send').onclick=async()=>{
   if(a==='site')openLink('https://cataas.com/upload');
  }
 };
+// ---------- «О сервисе» ----------
+$('open-about').onclick=()=>openWin('win-about');
+$('about-ver').textContent=$('app-ver').textContent.replace('Version: ','');
+$('about-gh').onclick=()=>openLink('https://github.com/nekit111kul-dev/tindpurr');
 $('save-p').onclick=()=>{store.set('tp_name',pn.value.trim());store.set('tp_age',pa.value);store.set('tp_bio',pb.value);hap('ok');toast('Сохранено 🐾')};
-})();
-</script>
-<script>
-// заставка: ждём шрифты и загрузку страницы (минимум 0,8 с, максимум 3 с); страховка на случай ошибок в основном скрипте
-(()=>{const v=document.getElementById('app-ver');if(v)console.info('Tindpurr',v.textContent);
- const splash=document.getElementById('splash');if(!splash)return;
- let gone=false;
- const wait=ms=>new Promise(r=>setTimeout(r,ms));
- const hide=()=>{if(gone)return;gone=true;document.documentElement.classList.remove('boot');splash.classList.add('hide');setTimeout(()=>splash.remove(),500)};
- const loaded=new Promise(r=>document.readyState==='complete'?r():addEventListener('load',r));
- const fonts=document.fonts?Promise.allSettled([document.fonts.load('600 16px Montserrat'),document.fonts.load('500 16px Oswald'),document.fonts.load('16px "Dark Deco"')]).then(()=>document.fonts.ready):Promise.resolve();
- Promise.all([Promise.race([Promise.all([fonts,loaded]),wait(3000)]),wait(800)]).then(hide);
- setTimeout(hide,4500);
 })();
 </script>
 </body>
